@@ -11,14 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('metric', function (Blueprint $table) {
+        Schema::create('units', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id_user');
-            $table->foreign('id_user')->references('id')->on('user');
-            $table->string('jenis_metric');
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->string('unit_name');
+            $table->boolean('status')->default(true);
+            $table->foreignId('user_id');
+            
             $table->timestamps();
             $table->softDeletes();
+            $table->timestamp('deactivated_at')->nullable();
+
+            $table->foreign('id_user')->references('id')->on('user')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 
@@ -27,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('units');
     }
 };

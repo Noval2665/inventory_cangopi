@@ -11,14 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('satuan', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id_user');
-            $table->foreign('id_user')->references('id')->on('user');
-            $table->string('nama_satuan');
-            $table->enum('status',['active','inactive'])->default('active');
+            
+            $table->string('category_name');
+            $table->boolean('status')->default(true);
+            $table->foreignId('user_id');
+            
             $table->timestamps();
             $table->softDeletes();
+            $table->timestamp('deactivated_at')->nullable();
+
+            $table->foreign('user_id')->references('id')->on('user')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 
@@ -27,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('personal_access_tokens');
+        Schema::dropIfExists('categories');
     }
 };
