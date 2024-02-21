@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('address');
+            $table->string('address')->nullable();
             $table->string('phone_number');
-            $table->text('exception');
+            $table->text('exception')->nullable();
             $table->boolean('status')->default(true);
             $table->foreignId('user_id');
             
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
-            $table->foreign('user_id')->references('id')->on('user')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 

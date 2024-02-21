@@ -11,17 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('units', function (Blueprint $table) {
+        Schema::create('brands', function (Blueprint $table) {
             $table->id();
-            $table->string('unit_name');
+            $table->string('brand_name');
             $table->boolean('status')->default(true);
-            $table->foreignId('user_id');
-            
+
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
-
-            $table->foreign('id_user')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 
@@ -30,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('units');
+        Schema::dropIfExists('brands');
     }
 };
