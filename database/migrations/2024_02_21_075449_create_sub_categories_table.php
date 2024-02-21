@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('sub_categories', function (Blueprint $table) {
             $table->id();
-            
             $table->string('sub_category_name');
             $table->boolean('status')->default(true);
             $table->foreignId('category_id');

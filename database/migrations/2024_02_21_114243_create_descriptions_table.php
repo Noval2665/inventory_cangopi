@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('storages', function (Blueprint $table) {
+        Schema::create('descriptions', function (Blueprint $table) {
             $table->id();
-            $table->string('storage_type');
+            $table->string('description_type');
             $table->boolean('status')->default(true);
             $table->foreignId('user_id');
-            
+
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('storages');
+        Schema::dropIfExists('descriptions');
     }
 };

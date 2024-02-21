@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('metrics', function (Blueprint $table) {
             $table->id();
-            
             $table->string('metric_type');
             $table->boolean('status')->default(true);
             $table->foreignId('user_id');

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->double('purchase_price');
             $table->double('stock');
             $table->double('size');
-            $table->string('image');
+            $table->string('image')->nullable();
             $table->boolean('status')->default(true);
 
             $table->foreignId('user_id');

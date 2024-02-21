@@ -11,17 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('storages', function (Blueprint $table) {
+        Schema::create('product_histories', function (Blueprint $table) {
             $table->id();
-            $table->string('storage_type');
-            $table->boolean('status')->default(true);
+            $table->date('date');
+            $table->double('quantity')->default(0);
+            $table->double('price')->default(0);
+            $table->integer('transaction_id');
+            $table->string('transaction_number');
+            $table->string('transaction_type');
             $table->foreignId('user_id');
-            
+            $table->foreignId('product_id');
+
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 
@@ -30,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('storages');
+        Schema::dropIfExists('product_histories');
     }
 };
