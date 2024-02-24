@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->double('quantity')->default(0);
             $table->string('portions')->nullable();
-            $table->boolean('status')->default(true);
+            $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
             $table->foreignId('product_id');
             $table->foreignId('metric_id');

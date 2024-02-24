@@ -16,7 +16,7 @@ return new class extends Migration
             $table->double('quantity')->default(0);
             $table->double('price')->default(0);
             $table->double('total_expense')->default(0);
-            $table->boolean('status')->default(true);
+            $table->boolean('is_active')->default(true);
             $table->foreignId('expense_id');
             $table->foreignId('product_id');
             $table->foreignId('description_id');

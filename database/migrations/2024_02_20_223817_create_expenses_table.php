@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('receiver_name');
             $table->double('total_item')->default(0);
             $table->double('total_expense')->default(0);
-            $table->boolean('status')->default(true);
+            $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
 
             $table->timestamps();
