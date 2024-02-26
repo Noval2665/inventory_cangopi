@@ -16,8 +16,8 @@ return new class extends Migration
 
             $table->string('product_name');
             $table->double('purchase_price');
-            $table->double('stock');
-            $table->double('size');
+            $table->double('stock'); //in units
+            $table->double('measurement'); //in metric
             $table->string('image')->nullable();
             $table->boolean('is_active')->default(true);
 
