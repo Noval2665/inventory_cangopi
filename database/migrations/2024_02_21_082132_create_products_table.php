@@ -21,11 +21,11 @@ return new class extends Migration
             $table->string('image')->nullable();
             $table->boolean('is_active')->default(true);
 
-            $table->foreignId('user_id');
-            $table->foreignId('sub_category_id');
-            $table->foreignId('storage_id');
-            $table->foreignId('brand_id');
-            $table->foreignId('unit_id');
+            $table->foreignId('user_id'); //udah
+            $table->foreignId('sub_category_id'); //udah(nicxon)
+            $table->foreignId('storage_id'); //udah
+            $table->foreignId('brand_id'); //udah
+            $table->foreignId('unit_id'); //udah
             $table->foreignId('metric_id');
             $table->foreignId('supplier_id');
 

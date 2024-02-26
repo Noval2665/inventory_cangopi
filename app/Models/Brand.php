@@ -9,5 +9,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Brand extends Model
 {
     use HasFactory, SoftDeletes;
+
     protected $guarded = [];
+
+    protected $dates = ['deactivated_at'];
+
+    protected $casts = [
+        'status' => 'boolean',
+        'brand_name' => 'string',
+    ];
 }

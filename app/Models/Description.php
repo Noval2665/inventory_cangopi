@@ -10,4 +10,9 @@ class Description extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded = [];
+    protected $dates = ['deactivated_at'];
+    protected $casts = [
+        'status' => 'boolean',
+        'description_type' => 'string',
+    ];
 }
