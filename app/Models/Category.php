@@ -10,4 +10,9 @@ class Category extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded = [];
+
+    public function subCategories()
+    {
+        return $this->hasMany(SubCategory::class, "category_id", "id");
+    }
 }
