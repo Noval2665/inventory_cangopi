@@ -2,7 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brand;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Carbon\Carbon;
+use App\Models\Description;
+use Symfony\Component\Console\Descriptor\Descriptor;
 
 class DesriptionController extends Controller
 {
@@ -11,7 +18,8 @@ class DesriptionController extends Controller
      */
     public function index()
     {
-        //
+        $descriptions = Description::all();
+        return response()->json(['descriptions' => $descriptions]);
     }
 
     /**
@@ -27,15 +35,51 @@ class DesriptionController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'description_type' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        DB::startTransaction();
+        try {
+            $description = Description::create([
+                'description_type' => $request->description_type,
+            ]);
+
+            if (!$description) {
+                throw new HttpException(400, 'Deskripsi gagal ditambahkan');
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Deskripsi berhasil ditambahkan',
+            ], 201);
+
+        } catch (HttpException $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Description $description)
     {
-        //
+        return response()->json(['description' => $description]);
     }
 
     /**
@@ -49,9 +93,35 @@ class DesriptionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Description $description) 
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'description_type' => 'required|string',
+        ]);
+
+        if($validator->fails()){
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $updateDescription = $description->update([
+            'description_type' => $request->description_type,
+        ]);
+
+        if (!$updateDescription){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Deskripsi gagal diperbarui',
+            ], 400);
+        }
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Deskripsi berhasil diperbarui',
+        ], 200);
     }
 
     /**
@@ -59,6 +129,9 @@ class DesriptionController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $description = Description::findOrFail($id);
+        $description->delete();
+
+        return response()->json(['message' => 'Deskripsi berhasil dihapus']);
     }
 }
