@@ -17,7 +17,7 @@ return new class extends Migration
             $table->date('date');
             $table->double('total_purchase')->default(0);
             $table->double('total_price')->default(0);
-            $table->boolean('status')->default(true);
+            $table->boolean('is_active')->default(true);
             $table->foreignId('purchase_order_id');
             $table->foreignId('product_id');
             $table->foreignId('description_id');

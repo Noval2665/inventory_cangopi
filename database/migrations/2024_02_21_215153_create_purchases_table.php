@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('purchases', function (Blueprint $table) {
-            $table->id();            
+            $table->id();
             $table->string('invoice_number');
             $table->date('date');
             $table->double('rupiah_discount')->default(0);
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->double('total_purchase')->default(0);
             $table->double('total_price')->default(0);
             $table->double('grand_total')->default(0);
-            $table->boolean('status')->default(true);
+            $table->boolean('is_active')->default(true);
             $table->foreignId('purchase_order_id');
             $table->foreignId('supplier_id');
             $table->foreignId('user_id');

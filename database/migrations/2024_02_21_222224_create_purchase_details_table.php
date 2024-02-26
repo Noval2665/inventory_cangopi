@@ -13,16 +13,16 @@ return new class extends Migration
     {
         Schema::create('purchase_details', function (Blueprint $table) {
             $table->id();
-            
+
             $table->double('quantity')->default(0);
             $table->double('received_quantity')->default(0);
             $table->double('purchase_price')->default(0);
-            $table->enum('discount_type',['Rp','%']);
+            $table->enum('discount_type', ['Rp', '%']);
             $table->double('rupiah_discount')->default(0);
             $table->double('percent_discount')->default(0);
             $table->double('total')->default(0);
             $table->text('description')->nullable();
-            $table->boolean('status')->default(true);
+            $table->boolean('is_active')->default(true);
             $table->foreignId('purchase_id');
             $table->foreignId('product_id');
 

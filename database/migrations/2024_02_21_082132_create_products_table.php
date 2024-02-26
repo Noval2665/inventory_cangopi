@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            
+
             $table->string('product_name');
             $table->double('purchase_price');
             $table->double('stock');
             $table->double('size');
             $table->string('image')->nullable();
-            $table->boolean('status')->default(true);
+            $table->boolean('is_active')->default(true);
 
             $table->foreignId('user_id'); //udah
             $table->foreignId('sub_category_id'); //udah(nicxon)

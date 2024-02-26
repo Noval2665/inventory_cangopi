@@ -11,17 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('descriptions', function (Blueprint $table) {
+        Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->string('description_type');
-            $table->boolean('is_active')->default(true);
-            $table->foreignId('user_id');
+            $table->string('name')->unique();
+            $table->json('permissions');
 
             $table->timestamps();
             $table->softDeletes();
-            $table->timestamp('deactivated_at')->nullable();
-
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 
@@ -30,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('descriptions');
+        Schema::dropIfExists('roles');
     }
 };
