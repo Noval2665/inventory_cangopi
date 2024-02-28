@@ -25,7 +25,7 @@ class UserController extends Controller
         if ($search) {
             $page = 1;
         }
-        
+
         $role = $request->role;
 
         $users = User::with(['role'])
@@ -58,51 +58,40 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|unique:users,name',
+            'username' => 'required|string|unique:users,username',
             'email' => 'required|unique:users,email',
             'password' => 'required|string|min:6',
-            'role' => 'required|exists:roles,id',
+            'role_id' => 'required|exists:roles,id',
             'photo' => 'nullable|string',
         ]);
 
-        if ($validator->fails()){
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
                 'errors' => $validator->errors(),
                 'message' => $validator->errors()->first(),
             ], 422);
         }
-        
-        DB::startTransaction();
-        try{
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => bcrypt($request->password),
-                'role' => $request->role,
-                'photo' => $request->photo,
-            ]);
 
-            if(!$user){
-                throw new HttpException(400, 'User gagal ditambahkan');
-            }
+        $createUser = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'role' => $request->role,
+            'photo' => $request->photo,
+        ]);
 
-            DB::commit();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'User berhasil ditambahkan',
-            ], 201);
-        }
-        
-        catch(HttpException $e){
-            DB::rollBack();
-
+        if (!$createUser) {
             return response()->json([
                 'status' => 'error',
-                'message' => $e->getMessage(),
-            ], $e->getStatusCode());
+                'message' => 'Gagal menambahkan data user',
+            ], 400);
         }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User berhasil ditambahkan',
+        ], 201);
     }
 
     /**
@@ -110,7 +99,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return response()->json(['user' => $user], 200);
+        //
     }
 
     /**
@@ -127,13 +116,13 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string',
-            'email' => 'required',
-            'role' => 'required|exists:roles,id',
+            'username' => 'required|string|unique:users,username' . $user->id,
+            'email' => 'required|unique:users,email' . $user->id,
+            'role_id' => 'required|exists:roles,id',
             'photo' => 'nullable|string',
         ]);
 
-        if ($validator->fails()){
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
                 'errors' => $validator->errors(),
@@ -142,19 +131,19 @@ class UserController extends Controller
         }
 
         $updateUser = $user->update([
-            'name' => $request->name,
+            'username' => $request->username,
             'email' => $request->email,
-            'role' => $request->role,
+            'role_id' => $request->role,
             'photo' => $request->photo,
         ]);
 
-        if (!$updateUser){
+        if (!$updateUser) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagala mengubah data user',
             ], 400);
         }
-        
+
         return response()->json([
             'status' => 'success',
             'message' => 'Berhasil mengubah data user',
@@ -167,12 +156,10 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $userLogin = auth()->user();
-        
-        if($userLogin->role->name != 'Admin') {
-            $this->deactivate($user->id);
-        } 
 
-        else {
+        if ($userLogin->role->name != 'Admin') {
+            $this->deactivate($user->id);
+        } else {
             if (!$user->delete()) {
                 return response()->json([
                     'status' => 'error',
@@ -182,7 +169,7 @@ class UserController extends Controller
         }
         return response()->json([
             'status' => 'success',
-            'message' => $userLogin->role->name != 'admin' ? 'Berhasil menonaktifkan user' : 'Berhasil menghapus data user',
+            'message' => $userLogin->role->name != 'Admin' ? 'Berhasil menonaktifkan user' : 'Berhasil menghapus data user',
         ], 200);
     }
 
