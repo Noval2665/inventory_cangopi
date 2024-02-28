@@ -10,4 +10,9 @@ class Unit extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded = [];
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

@@ -16,6 +16,11 @@ class Brand extends Model
 
     protected $casts = [
         'status' => 'boolean',
-        'brand_name' => 'string',
+
     ];
+
+    public function products()
+    {
+        return $this->hasMany(Product::class, "brand_id", "id");
+    }
 }

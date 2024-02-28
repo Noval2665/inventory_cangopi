@@ -18,4 +18,9 @@ class Storage extends Model
         'status' => 'boolean',
         'storage_type' => 'string',
     ];
+
+    public function products()
+    {
+        return $this->hasMany(Product::class, "storage_id", "id");
+    }
 }

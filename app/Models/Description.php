@@ -15,4 +15,12 @@ class Description extends Model
         'status' => 'boolean',
         'description_type' => 'string',
     ];
+
+    public function PurchaseOrderDetails(){
+        return $this->hasMany(PurchaseOrderDetail::class, "description_id", "id");
+    }
+
+    public function PurchaseDetails(){
+        return $this->hasMany(PurchaseDetail::class, "description_id", "id");
+    }
 }

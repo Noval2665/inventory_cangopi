@@ -61,6 +61,23 @@ class UnitController extends Controller
                 'message' => $validator->errors()->first(),
             ], 422);
         }
+
+        $createUnit = Unit::create([
+            'unit_name' => ucwords($request->unit_name),
+            'user_id' => auth()->user()->id,
+        ]);
+
+        if(!$createUnit){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal membuat data unit',
+            ], 400);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Berhasil membuat data unit',
+        ], 201);
     }
 
     public function show(Unit $unit)
@@ -94,7 +111,8 @@ class UnitController extends Controller
         }
 
         $updateUnit = $unit->update([
-            'unit_name' => $request->unit_name,
+            'unit_name' => ucwords($request->unit_name),
+            'user_id' => auth()->user()->id,
         ]);
 
         if(!$updateUnit){
@@ -139,7 +157,7 @@ class UnitController extends Controller
         }
         return response()->json([
             'status' => 'success',
-            'message' => $userLogin->role->name != 'admin' ? 'Berhasil menonaktifkan unit' : 'Berhasil menghapus data unit',
+            'message' => $userLogin->role->name != 'Admin' ? 'Berhasil menonaktifkan unit' : 'Berhasil menghapus data unit',
         ], 200);
     }
 
