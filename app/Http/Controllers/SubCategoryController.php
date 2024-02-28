@@ -24,7 +24,7 @@ class SubCategoryController extends Controller
             $page = 1;
         }
 
-        $subCategories = SubCategory::when($search, function ($query, $search) {
+        $subCategories = SubCategory::with(['category'])->when($search, function ($query, $search) {
             return $query->where('sub_category_name', 'LIKE', '%' . $search . '%')
                 ->orWhereHas('category', function ($query) use ($search) {
                     $query->where('category_name', 'LIKE', '%' . $search . '%');

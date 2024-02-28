@@ -17,12 +17,14 @@ return new class extends Migration
             $table->foreignId('category_id');
             $table->boolean('status')->default(true);
             $table->boolean('is_active')->default(true);
+            $table->foreignId('user_id');
 
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
-            $table->foreign('category_id')->references('id')->on('categories')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('category_id')->references('id')->on('categories')->onUpdate('cascade')->onDelete('restrict');
+            $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('restrict');
         });
     }
 
