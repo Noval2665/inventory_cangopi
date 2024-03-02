@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -16,10 +17,22 @@ class DesriptionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $descriptions = Description::all();
-        return response()->json(['descriptions' => $descriptions]);
+        $page = $request->page;
+        $per_page = $request->per_page ?? 10000;
+        $search = $request->search;
+
+        $descriptions = Description::when($search, function ($query, $search) {
+            return $query->where('description_type', 'LIKE', '%' . $search . '%');
+        })
+            ->paginate($per_page, ['*'], 'page', $page);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Menampilkan data deskripsi',
+            'descriptions' => $descriptions,
+        ], 200);
     }
 
     /**
@@ -47,31 +60,24 @@ class DesriptionController extends Controller
             ], 422);
         }
 
-        DB::startTransaction();
-        try {
-            $description = Description::create([
-                'description_type' => $request->description_type,
-            ]);
+        
+         $description = Description::create([
+            'description_type' => ucwords($request->description_type),
+            'user_id' => auth()->user()->id,
+        ]);
 
-            if (!$description) {
-                throw new HttpException(400, 'Deskripsi gagal ditambahkan');
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Deskripsi berhasil ditambahkan',
-            ], 201);
-
-        } catch (HttpException $e) {
-            DB::rollBack();
-
+        if (!$description) {
             return response()->json([
                 'status' => 'error',
-                'message' => $e->getMessage(),
-            ], $e->getStatusCode());
+                'errors' => $validator->errors(),
+                'message' => $validator->errors()->first(),
+            ], 422);
         }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Deskripsi berhasil ditambahkan',
+        ], 201);
     }
 
     /**
@@ -108,7 +114,8 @@ class DesriptionController extends Controller
         }
 
         $updateDescription = $description->update([
-            'description_type' => $request->description_type,
+            'description_type' => ucwords($request->description_type),
+            'user_id' => auth()->user()->id,
         ]);
 
         if (!$updateDescription){
@@ -127,11 +134,58 @@ class DesriptionController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Description $description)
     {
-        $description = Description::findOrFail($id);
-        $description->delete();
+        $user = auth()->user();
+        
+        if ($user->role->name != 'Admin'){
+            $this->deactivate($description->id);
+        }
+        else{
+            if ($description->PurchaseOrderDetails()->exists()){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Tidak dapat menghapus data deskripsi yang memiliki Purchase Order terkait'
+                ], 422);
+            }
+            if ($description->PurchaseDetails()->exists()){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Tidak dapat menghapus data deskripsi yang memiliki Purchase terkait'
+                ], 422);
+            }
 
-        return response()->json(['message' => 'Deskripsi berhasil dihapus']);
+            if(!$description->delete()){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gagal menghapus data deskripsi',
+                ], 400);
+            }
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil menghapus data deskripsi',
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => $user->role->name == 'Admin' ? 'Berhasil menonaktifkan data deskripsi' : 'Berhasil menghapus data deskripsi',
+        ]);
+    }
+
+    public function deactivate($id)
+    {
+        $updateDescription = Description::where('id', $id)->update([
+            'is_active' => 0,
+            'deactivated_at' => Carbon::now(),
+        ]);
+
+        if (!$updateDescription) {
+            return response()->json([
+
+                'status' => 'error',
+                'message' => 'Gagal menonaktifkan deskripsi',
+            ], 400);
+        }
     }
 }
