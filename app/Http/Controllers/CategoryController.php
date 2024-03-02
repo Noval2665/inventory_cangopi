@@ -142,6 +142,7 @@ class CategoryController extends Controller
                     'message' => 'Tidak dapat menghapus data kategori produk yang memiliki sub kategori terkait'
                 ], 422);
             }
+
             if (!$category->delete()) {
                 return response()->json([
                     'status' => 'error',

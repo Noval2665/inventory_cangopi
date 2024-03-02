@@ -14,7 +14,8 @@ class Supplier extends Model
     protected $dates = ['deactivated_at'];
 
     protected $casts = [
-        'status' => 'boolean',
+        'is_active' => 'boolean',
+        'user_id' => 'integer',
 
     ];
 

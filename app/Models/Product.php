@@ -15,7 +15,7 @@ class Product extends Model
     protected $dates = ['deactivated_at'];
 
     protected $casts = [
-        'status' => 'boolean',
+        'is_active' => 'boolean',
         'product_name' => 'string',
     ];
 

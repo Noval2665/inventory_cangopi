@@ -10,4 +10,10 @@ class purchase_report extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+    protected $dates = ['deactivated_at'];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 }

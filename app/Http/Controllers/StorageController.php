@@ -28,7 +28,7 @@ class StorageController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Menampilkan data kategori',
+            'message' => 'Menampilkan data Storage',
             'storages' => $storages,
         ], 200);
     }
@@ -50,7 +50,7 @@ class StorageController extends Controller
             'storage_type' => 'required|string',
         ]);
 
-        if ($validator->fails()){
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
                 'errors' => $validator->errors(),
@@ -58,21 +58,21 @@ class StorageController extends Controller
             ], 422);
         }
 
-        $storage = Storage::create([
+        $createStorage = Storage::create([
             'storage_type' => $request->storage_type,
             'user_id' => auth()->user()->id,
         ]);
 
-        if(!$storage){
+        if (!$createStorage) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Storage gagal ditambahkan',
+                'message' => 'Gagal menambahkan data Storage',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Storage berhasil ditambahkan',
+            'message' => 'Berhasil menambahkan data Storage',
         ], 201);
     }
 
@@ -81,7 +81,7 @@ class StorageController extends Controller
      */
     public function show(Storage $storage)
     {
-        return response()->json(['storage' => $storage]);
+        //
     }
 
     /**
@@ -101,7 +101,7 @@ class StorageController extends Controller
             'storage_type' => 'required|string',
         ]);
 
-        if ($validator->fails()){
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
                 'errors' => $validator->errors(),
@@ -114,16 +114,16 @@ class StorageController extends Controller
             'user_id' => auth()->user()->id,
         ]);
 
-        if (!$updateStorage){
+        if (!$updateStorage) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Storage gagal diperbarui',
+                'message' => 'Gagal memperbarui data Storage',
             ], 400);
         }
-        
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Storage berhasil diperbarui',
+            'message' => 'Berhasil memperbarui data Storage',
         ], 200);
     }
 
@@ -143,6 +143,7 @@ class StorageController extends Controller
                     'message' => 'Tidak dapat menghapus data storage produk yang memiliki produk terkait'
                 ], 422);
             }
+
             if (!$storage->delete()) {
                 return response()->json([
                     'status' => 'error',
