@@ -10,4 +10,10 @@ class order_list extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+    protected $dates = ['deactivated_at'];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 }

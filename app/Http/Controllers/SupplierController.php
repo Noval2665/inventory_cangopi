@@ -25,7 +25,7 @@ class SupplierController extends Controller
             return $query->where('supplier_name', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
-        
+
         return response()->json([
             'status' => 'success',
             'message' => 'Menampilkan data supplier',
@@ -48,6 +48,10 @@ class SupplierController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'supplier_name' => 'required|string',
+            'address' => 'required|string',
+            'phone_number' => 'required|numeric',
+            'exception' => 'required|string',
+
         ]);
 
         if ($validator->fails()) {
@@ -59,11 +63,10 @@ class SupplierController extends Controller
         }
 
         $createSupplier = Supplier::create([
-            'name' => ucwords($request->name),
+            'supplier_name' => ucwords($request->supplier_name),
             'address' => $request->address,
             'phone_number' => $request->phone_number,
             'exception' => $request->exception,
-            'created_at' => Carbon::now(),
             'user_id' => auth()->user()->id,
         ]);
 
@@ -78,7 +81,6 @@ class SupplierController extends Controller
             'status' => 'success',
             'message' => 'Berhasil membuat data supplier',
         ], 201);
-        
     }
 
     /**
@@ -104,9 +106,12 @@ class SupplierController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'supplier_name' => 'required|string',
+            'address' => 'required|string',
+            'phone_number' => 'required|numeric',
+            'exception' => 'required|string',
         ]);
 
-        if ($validator->fails()){
+        if ($validator->fails()) {
             return response([
                 'status' => 'error',
                 'errors' => $validator->errors(),
@@ -115,15 +120,14 @@ class SupplierController extends Controller
         }
 
         $updateSupplier = $supplier->update([
-            'name' => ucwords($request->name),
+            'supplier_name' => ucwords($request->name),
             'address' => $request->address,
             'phone_number' => $request->phone_number,
             'exception' => $request->exception,
-            'created_at' => Carbon::now(),
             'user_id' => auth()->user()->id,
         ]);
 
-        if(!$updateSupplier){
+        if (!$updateSupplier) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagal mengubah data supplier',
@@ -143,19 +147,17 @@ class SupplierController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->role->name != 'Admin'){
+        if ($user->role->name != 'Admin') {
             $this->deactivate($supplier->id);
-        }
-
-        else{
-            if($supplier->products()->exists()){
+        } else {
+            if ($supplier->products()->exists()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Tidak dapat menghapus data supplier yang memiliki produk terkait',
                 ], 422);
             }
 
-            if(!$supplier->delete()){
+            if (!$supplier->delete()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Gagal menghapus data supplier',
@@ -174,13 +176,14 @@ class SupplierController extends Controller
         ]);
     }
 
-    public function deactivate($id){
+    public function deactivate($id)
+    {
         $updateSupplier = Supplier::where('id', $id)->update([
             'is_active' => 0,
             'deactivated_at' => Carbon::now(),
         ]);
 
-        if(!$updateSupplier){
+        if (!$updateSupplier) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagal menonaktifkan data supplier',

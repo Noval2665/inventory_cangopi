@@ -12,7 +12,10 @@ class Role extends Model
 
     protected $guarded = [];
 
+    protected $dates = ['deactivated_at'];
+
     protected $casts = [
         'permissions' => 'array',
+        'is_active' => 'boolean',
     ];
 }

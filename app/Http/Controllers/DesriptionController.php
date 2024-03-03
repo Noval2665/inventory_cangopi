@@ -60,23 +60,22 @@ class DesriptionController extends Controller
             ], 422);
         }
 
-        
-         $description = Description::create([
+
+        $createDescription = Description::create([
             'description_type' => ucwords($request->description_type),
             'user_id' => auth()->user()->id,
         ]);
 
-        if (!$description) {
+        if (!$createDescription) {
             return response()->json([
                 'status' => 'error',
-                'errors' => $validator->errors(),
-                'message' => $validator->errors()->first(),
+                'message' => 'Gagal membuat data deskripsi',
             ], 422);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Deskripsi berhasil ditambahkan',
+            'message' => 'Berhasil membuat data deskripsi',
         ], 201);
     }
 
@@ -85,7 +84,7 @@ class DesriptionController extends Controller
      */
     public function show(Description $description)
     {
-        return response()->json(['description' => $description]);
+        //
     }
 
     /**
@@ -99,13 +98,13 @@ class DesriptionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Description $description) 
+    public function update(Request $request, Description $description)
     {
         $validator = Validator::make($request->all(), [
             'description_type' => 'required|string',
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
                 'errors' => $validator->errors(),
@@ -118,16 +117,16 @@ class DesriptionController extends Controller
             'user_id' => auth()->user()->id,
         ]);
 
-        if (!$updateDescription){
+        if (!$updateDescription) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Deskripsi gagal diperbarui',
+                'message' => 'Gagal memperbarui data deskripsi',
             ], 400);
         }
-        
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Deskripsi berhasil diperbarui',
+            'message' => 'Berhasil memperbarui data deskripsi',
         ], 200);
     }
 
@@ -137,25 +136,24 @@ class DesriptionController extends Controller
     public function destroy(Description $description)
     {
         $user = auth()->user();
-        
-        if ($user->role->name != 'Admin'){
+
+        if ($user->role->name != 'Admin') {
             $this->deactivate($description->id);
-        }
-        else{
-            if ($description->PurchaseOrderDetails()->exists()){
+        } else {
+            if ($description->PurchaseOrderDetails()->exists()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Tidak dapat menghapus data deskripsi yang memiliki Purchase Order terkait'
                 ], 422);
             }
-            if ($description->PurchaseDetails()->exists()){
+            if ($description->PurchaseDetails()->exists()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Tidak dapat menghapus data deskripsi yang memiliki Purchase terkait'
                 ], 422);
             }
 
-            if(!$description->delete()){
+            if (!$description->delete()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Gagal menghapus data deskripsi',

@@ -15,7 +15,7 @@ class Storage extends Model
     protected $dates = ['deactivated_at'];
 
     protected $casts = [
-        'status' => 'boolean',
+        'is_active' => 'boolean',
         'storage_type' => 'string',
     ];
 

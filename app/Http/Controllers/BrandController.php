@@ -22,15 +22,15 @@ class BrandController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        $brand = Brand::when($search, function ($query, $search) {
+        $brands = Brand::when($search, function ($query, $search) {
             return $query->where('brand_name', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Menampilkan data brand',
-            'brands' => $brand,
+            'message' => 'Menampilkan data Merek',
+            'brands' => $brands,
         ], 200);
     }
 
@@ -59,22 +59,22 @@ class BrandController extends Controller
             ], 422);
         }
 
-        
-        $brand = Brand::create([
+
+        $createBrand = Brand::create([
             'brand_name' => ucwords($request->brand_name),
             'user_id' => auth()->user()->id,
         ]);
 
-        if (!$brand) {
+        if (!$createBrand) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Brand gagal ditambahkan'
+                'message' => 'Gagal membuat data merek'
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Brand berhasil ditambahkan',
+            'message' => 'Berhasil membuat data merek',
         ], 201);
     }
 
@@ -116,16 +116,16 @@ class BrandController extends Controller
             'user_id' => auth()->user()->id,
         ]);
 
-        if (!$updateBrand){
+        if (!$updateBrand) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Brand gagal diperbarui',
+                'message' => 'Gagal mengubah data merek',
             ], 400);
         }
-        
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Brand berhasil diperbarui',
+            'message' => 'Berhasil mengubah data merek',
         ], 200);
     }
 
@@ -136,33 +136,32 @@ class BrandController extends Controller
     {
         $user = auth()->user();
 
-        if($user->role->name != 'Admin'){
+        if ($user->role->name != 'Admin') {
             $this->deactivate($brand->id);
-        }
-        else{
+        } else {
             if ($brand->products()->exists()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Tidak dapat menghapus data brand yang memiliki produk terkait'
+                    'message' => 'Tidak dapat menghapus data merek yang memiliki produk terkait'
                 ], 422);
             }
-            if(!$brand->delete()){
+            if (!$brand->delete()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Gagal menghapus data brand',
+                    'message' => 'Gagal menghapus data merek',
                 ], 400);
             }
             $brand->delete();
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Berhasil menghapus data brand',
+                'message' => 'Berhasil menghapus data merek',
             ]);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => $user->role->name != 'Admin' ? 'Berhasil mengonaktifkan data brand' : 'Berhasil menghapus data brand',
+            'message' => $user->role->name != 'Admin' ? 'Berhasil mengonaktifkan data merek' : 'Berhasil menghapus data merek',
         ]);
     }
 
@@ -173,10 +172,10 @@ class BrandController extends Controller
             'deactivated_at' => Carbon::now(),
         ]);
 
-        if(!$updateBrand){
+        if (!$updateBrand) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menonaktifkan brand',
+                'message' => 'Gagal menonaktifkan merek',
             ]);
         }
     }

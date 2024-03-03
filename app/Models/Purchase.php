@@ -10,4 +10,10 @@ class Purchase extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded = [];
+
+    protected $dates = ['deactivated_at'];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 }
