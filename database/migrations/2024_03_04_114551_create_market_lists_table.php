@@ -13,7 +13,18 @@ return new class extends Migration
     {
         Schema::create('market_lists', function (Blueprint $table) {
             $table->id();
+
+            $table->string('market_list_name');
+            $table->enum('status', ['Pending', 'Approve', 'Cancel', 'Waiting'])->default('Pending');
+            $table->foreignId('user_id');
+            $table->foreignId('order_list_id'); #ambil tanggal juga dari ini
+
             $table->timestamps();
+            $table->softDeletes();
+            $table->timestamp('deactivated_at')->nullable();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('order_list_id')->references('id')->on('order_lists')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 
