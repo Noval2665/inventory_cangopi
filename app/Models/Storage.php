@@ -16,7 +16,7 @@ class Storage extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'storage_type' => 'string',
+        'user_id' => 'integer',
     ];
 
     public function products()

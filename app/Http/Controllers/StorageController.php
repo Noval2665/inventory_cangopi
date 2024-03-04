@@ -28,7 +28,7 @@ class StorageController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Menampilkan data Storage',
+            'message' => 'Menampilkan data Penyimpanan',
             'storages' => $storages,
         ], 200);
     }
@@ -46,6 +46,8 @@ class StorageController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
+
         $validator = Validator::make($request->all(), [
             'storage_type' => 'required|string',
         ]);
@@ -58,22 +60,45 @@ class StorageController extends Controller
             ], 422);
         }
 
-        $createStorage = Storage::create([
-            'storage_type' => $request->storage_type,
-            'user_id' => auth()->user()->id,
-        ]);
+        try {
+            $storage = Storage::where('storage_type', $request->storage_type)->withTrashed()->first();
 
-        if (!$createStorage) {
+            if ($storage) {
+                $storage->restore();
+
+                $updateStorage = $storage->update([
+                    'is_active' => 1,
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$updateStorage) {
+                    throw new HttpException(400, 'Gagal mengubah data penyimpanan');
+                }
+            } else {
+                $createStorage = Storage::create([
+                    'storage_type' => $request->storage_type,
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$createStorage) {
+                    throw new HttpException(400, 'Gagal menambahkan data penyimpanan');
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil menambahkan data penyimpanan',
+            ], 201);
+        } catch (HttpException $e) {
+            DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menambahkan data Storage',
-            ], 400);
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Berhasil menambahkan data Storage',
-        ], 201);
     }
 
     /**
@@ -117,13 +142,13 @@ class StorageController extends Controller
         if (!$updateStorage) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal memperbarui data Storage',
+                'message' => 'Gagal memperbarui data Penyimpanan',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil memperbarui data Storage',
+            'message' => 'Berhasil memperbarui data Penyimpanan',
         ], 200);
     }
 
@@ -140,26 +165,26 @@ class StorageController extends Controller
             if ($storage->products()->exists()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Tidak dapat menghapus data storage produk yang memiliki produk terkait'
+                    'message' => 'Tidak dapat menghapus data Penyimpanan produk yang memiliki produk terkait'
                 ], 422);
             }
 
             if (!$storage->delete()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Gagal menghapus data storage',
+                    'message' => 'Gagal menghapus data Penyimpanan',
                 ], 400);
             }
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Berhasil menghapus data storage',
+                'message' => 'Berhasil menghapus data Penyimpanan',
             ], 200);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => $user->role->name != 'Admin' ? 'Berhasil menonaktifkan storage' : 'Berhasil menghapus data storage',
+            'message' => $user->role->name != 'Admin' ? 'Berhasil menonaktifkan Penyimpanan' : 'Berhasil menghapus data Penyimpanan',
         ], 200);
     }
 
