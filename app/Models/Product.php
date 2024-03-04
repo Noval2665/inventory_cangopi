@@ -28,4 +28,19 @@ class Product extends Model
     {
         return $this->belongsTo(Unit::class, 'unit_id', "id");
     }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id', "id");
+    }
+
+    public function subCategory()
+    {
+        return $this->belongsTo(SubCategory::class, 'sub_category_id', "id");
+    }
+
+    public function orderLists()
+    {
+        return $this->hasMany(OrderList::class, "product_id", "id");
+    }
 }
