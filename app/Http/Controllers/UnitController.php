@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Carbon\Carbon;
 use App\Models\Unit;
+use Http;
 use Symfony\Component\Console\Descriptor\Descriptor;
 
 class UnitController extends Controller
@@ -46,6 +47,8 @@ class UnitController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
+
         $validator = Validator::make($request->all(), [
             'unit_name' => 'required|string',
         ]);
@@ -58,22 +61,45 @@ class UnitController extends Controller
             ], 422);
         }
 
-        $createUnit = Unit::create([
-            'unit_name' => ucwords($request->unit_name),
-            'user_id' => auth()->user()->id,
-        ]);
+        try {
+            $unit = Unit::where('unit_name', $request->unit_name)->withTrashed()->first();
 
-        if (!$createUnit) {
+            if ($unit) {
+                $unit->restore();
+
+                $updateUnit = $unit->update([
+                    'is_active' => 1,
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$updateUnit) {
+                    throw new HttpException(400, 'Gagal mengubah data satuan');
+                }
+            } else {
+                $createUnit = Unit::create([
+                    'unit_name' => ucwords($request->unit_name),
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$createUnit) {
+                    throw new HttpException(400, 'Gagal membuat data satuan');
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil membuat data satuan',
+            ], 201);
+        } catch (HttpException $e) {
+            DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal membuat data satuan',
-            ], 400);
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Berhasil membuat data satuan',
-        ], 201);
     }
 
     public function show(Unit $unit)

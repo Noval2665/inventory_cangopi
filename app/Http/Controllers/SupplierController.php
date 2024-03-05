@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -46,11 +47,13 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
+
         $validator = Validator::make($request->all(), [
             'supplier_name' => 'required|string',
-            'address' => 'required|string',
+            'address' => 'nullable|string',
             'phone_number' => 'required|numeric',
-            'exception' => 'required|string',
+            'exception' => 'nullable|string',
 
         ]);
 
@@ -61,26 +64,51 @@ class SupplierController extends Controller
                 'message' => $validator->errors()->first(),
             ], 422);
         }
+        try {
+            $supplier = Supplier::where('supplier_name', $request->supplier_name)->withTrashed()->first();
 
-        $createSupplier = Supplier::create([
-            'supplier_name' => ucwords($request->supplier_name),
-            'address' => $request->address,
-            'phone_number' => $request->phone_number,
-            'exception' => $request->exception,
-            'user_id' => auth()->user()->id,
-        ]);
+            if ($supplier) {
+                $supplier->restore();
 
-        if (!$createSupplier) {
+                $updateSupplier = $supplier->update([
+                    'address' => $request->address,
+                    'phone_number' => $request->phone_number,
+                    'exception' => $request->exception,
+                    'is_active' => 1,
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$updateSupplier) {
+                    throw new HttpException(400, 'Gagal mengubah data supplier');
+                }
+            } else {
+                $createSupplier = Supplier::create([
+                    'supplier_name' => ucwords($request->supplier_name),
+                    'address' => $request->address,
+                    'phone_number' => $request->phone_number,
+                    'exception' => $request->exception,
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$createSupplier) {
+                    throw new HttpException(400, 'Gagal membuat data supplier');
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil membuat data supplier',
+            ], 201);
+        } catch (HttpException $e) {
+            DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal membuat data supplier',
-            ], 400);
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Berhasil membuat data supplier',
-        ], 201);
     }
 
     /**
@@ -106,9 +134,9 @@ class SupplierController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'supplier_name' => 'required|string',
-            'address' => 'required|string',
+            'address' => 'nullable|string',
             'phone_number' => 'required|numeric',
-            'exception' => 'required|string',
+            'exception' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {

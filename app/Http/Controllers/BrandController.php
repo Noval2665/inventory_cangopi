@@ -47,6 +47,8 @@ class BrandController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
+
         $validator = Validator::make($request->all(), [
             'brand_name' => 'required|string',
         ]);
@@ -59,23 +61,47 @@ class BrandController extends Controller
             ], 422);
         }
 
+        try {
 
-        $createBrand = Brand::create([
-            'brand_name' => ucwords($request->brand_name),
-            'user_id' => auth()->user()->id,
-        ]);
+            $brand = Brand::where('brand_name', ucwords($request->brand_name))->withTrashed()->first();
 
-        if (!$createBrand) {
+            if ($brand) {
+                $brand->restore();
+
+                $updateBrand = $brand->update([
+                    'is_active' => 1,
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$updateBrand) {
+                    throw new HttpException(400, 'Gagal mengubah data brand');
+                }
+            } else {
+
+                $createBrand = Brand::create([
+                    'brand_name' => ucwords($request->brand_name),
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$createBrand) {
+                    throw new HttpException(400, 'Gagal membuat data brand');
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil membuat data brand',
+            ], 201);
+        } catch (HttpException $e) {
+            DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal membuat data merek'
-            ], 400);
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Berhasil membuat data merek',
-        ], 201);
     }
 
     /**
