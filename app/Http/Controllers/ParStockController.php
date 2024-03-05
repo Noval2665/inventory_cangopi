@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Carbon\Carbon;
-use App\Models\Storage;
+use App\Models\ParStock;
 use Symfony\Component\Console\Descriptor\Descriptor;
 
-class StorageController extends Controller
+class ParStockController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -21,15 +21,15 @@ class StorageController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        $storages = Storage::when($search, function ($query, $search) {
+        $parStocks = ParStock::when($search, function ($query, $search) {
             return $query->where('storage_type', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
-
+        
         return response()->json([
             'status' => 'success',
-            'message' => 'Menampilkan data Storage',
-            'storages' => $storages,
+            'message' => 'Menampilkan data Par Stock',
+            'parStocks' => $parStocks,
         ], 200);
     }
 
@@ -47,40 +47,50 @@ class StorageController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'storage_type' => 'required|string',
+            'par_stock_code' => 'required|string',
+            'par_stock_name' => ucwords('required|string'),
+            'minimum_stock' => 'required|numeric',
+            'is_active' => 'required|boolean',
+            'user_id' => 'required|integer',
+            'unit_id' => 'required|integer',
+            'storage_id' => 'required|integer',
         ]);
 
-        if ($validator->fails()) {
+        if($validator->fails()){
             return response()->json([
                 'status' => 'error',
                 'errors' => $validator->errors(),
                 'message' => $validator->errors()->first(),
-            ], 422);
+            ]);
         }
 
-        $createStorage = Storage::create([
-            'storage_type' => $request->storage_type,
-            'inventory_id' => $request->inventory_id,
+        $createParStock = ParStock::create([
+            'par_stock_code' => $request->par_stock_code,
+            'par_stock_name' => $request->par_stock_name,
+            'minimum_stock' => $request->minimum_stock,
+            'is_active' => $request->is_active,
             'user_id' => auth()->user()->id,
+            'unit_id' => $request->unit_id,
+            'storage_id' => $request->storage_id,
         ]);
 
-        if (!$createStorage) {
+        if(!$createParStock){
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menambahkan data Storage',
+                'message' => 'Gagal menambahkan data Par Stock',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil menambahkan data Storage',
-        ], 201);
+            'message' => 'Berhasil menambahkan data Par Stock',
+        ], 200);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Storage $storage)
+    public function show(string $id)
     {
         //
     }
@@ -96,87 +106,89 @@ class StorageController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Storage $storage)
+    public function update(Request $request, ParStock $parStock)
     {
         $validator = Validator::make($request->all(), [
-            'storage_type' => 'required|string',
+            'par_stock_code' => 'required|string',
+            'par_stock_name' => ucwords('required|string'),
+            'minimum_stock' => 'required|numeric',
+            'is_active' => 'required|boolean',
+            'user_id' => 'required|integer',
+            'unit_id' => 'required|integer',
+            'storage_id' => 'required|integer',
         ]);
 
-        if ($validator->fails()) {
+        if($validator->fails()){
             return response()->json([
                 'status' => 'error',
                 'errors' => $validator->errors(),
                 'message' => $validator->errors()->first(),
-            ], 422);
+            ]);
         }
 
-        $updateStorage = $storage->update([
-            'storage_type' => $request->storage_type,
-            'inventory_id' => $request->inventory_id,
+        $updateParStock = $parStock->update([
+            'par_stock_code' => $request->par_stock_code,
+            'par_stock_name' => $request->par_stock_name,
+            'minimum_stock' => $request->minimum_stock,
+            'is_active' => $request->is_active,
             'user_id' => auth()->user()->id,
+            'unit_id' => $request->unit_id,
+            'storage_id' => $request->storage_id,
         ]);
 
-        if (!$updateStorage) {
+        if(!$updateParStock){
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal memperbarui data Storage',
+                'message' => 'Gagal memperbarui data Par Stock',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil memperbarui data Storage',
+            'message' => 'Berhasil memperbarui data Par Stock',
         ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Storage $storage)
+    public function destroy(ParStock $parStock)
     {
         $user = auth()->user();
 
         if ($user->role->name != 'Admin') {
-            $this->deactivate($storage->id);
-        } else {
-            if ($storage->products()->exists()) {
+            $this->deactivate($parStock->id);
+        } 
+        else {
+            if (!$parStock->delete()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Tidak dapat menghapus data storage produk yang memiliki produk terkait'
-                ], 422);
-            }
-
-            if (!$storage->delete()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Gagal menghapus data storage',
+                    'message' => 'Gagal menghapus data Par Stock',
                 ], 400);
             }
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Berhasil menghapus data storage',
+                'message' => 'Berhasil menghapus data Par Stock',
             ], 200);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => $user->role->name != 'Admin' ? 'Berhasil menonaktifkan storage' : 'Berhasil menghapus data storage',
+            'message' => $user->role->name != 'Admin' ? 'Berhasil menontaktifkan data Par Stock' : 'Berhasil menghapus data Par Stock',
         ], 200);
     }
 
-    public function deactivate($id)
-    {
-        $updateStorage = Storage::where('id', $id)->update([
+    public function deactivate($id){
+        $updateParStock = ParStock::where('id', $id)->update([
             'is_active' => 0,
             'deactivated_at' => Carbon::now(),
         ]);
 
-        if (!$updateStorage) {
+        if(!$updateParStock){
             return response()->json([
-
                 'status' => 'error',
-                'message' => 'Gagal menonaktifkan Storage',
+                'message' => 'Gagal menonaktifkan Par Stock',
             ], 400);
         }
     }

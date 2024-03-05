@@ -16,6 +16,7 @@ return new class extends Migration
 
             $table->string('market_list_name');
             $table->enum('status', ['Pending', 'Approve', 'Cancel', 'Waiting'])->default('Pending');
+            $table->date('date');
             $table->foreignId('user_id');
             $table->foreignId('order_list_id'); #ambil tanggal juga dari ini
 

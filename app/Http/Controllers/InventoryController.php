@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Carbon\Carbon;
-use App\Models\Storage;
+use App\Models\Inventory;
 use Symfony\Component\Console\Descriptor\Descriptor;
 
-class StorageController extends Controller
+class InventoryController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -21,15 +21,15 @@ class StorageController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        $storages = Storage::when($search, function ($query, $search) {
-            return $query->where('storage_type', 'LIKE', '%' . $search . '%');
+        $inventories = Inventory::when($search, function ($query, $search) {
+            return $query->where('name', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Menampilkan data Storage',
-            'storages' => $storages,
+            'message' => 'Menampilkan data Inventory',
+            'inventories' => $inventories,
         ], 200);
     }
 
@@ -47,10 +47,10 @@ class StorageController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'storage_type' => 'required|string',
+            'name' => 'required|string',
         ]);
 
-        if ($validator->fails()) {
+        if ($validator->fails()){
             return response()->json([
                 'status' => 'error',
                 'errors' => $validator->errors(),
@@ -58,29 +58,28 @@ class StorageController extends Controller
             ], 422);
         }
 
-        $createStorage = Storage::create([
-            'storage_type' => $request->storage_type,
-            'inventory_id' => $request->inventory_id,
+        $createInventory = Inventory::create([
+            'inventory_type' => $request->inventory_type,
             'user_id' => auth()->user()->id,
         ]);
 
-        if (!$createStorage) {
+        if (!$createInventory) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menambahkan data Storage',
+                'message' => 'Gagal menambahkan data Inventory',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil menambahkan data Storage',
+            'message' => 'Berhasil menambahkan data Inventory',
         ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Storage $storage)
+    public function show(string $id)
     {
         //
     }
@@ -96,13 +95,13 @@ class StorageController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Storage $storage)
+    public function update(Request $request, string $id)
     {
         $validator = Validator::make($request->all(), [
-            'storage_type' => 'required|string',
+            'inventory_type' => 'required|string',
         ]);
 
-        if ($validator->fails()) {
+        if ($validator->fails()){
             return response()->json([
                 'status' => 'error',
                 'errors' => $validator->errors(),
@@ -110,74 +109,72 @@ class StorageController extends Controller
             ], 422);
         }
 
-        $updateStorage = $storage->update([
-            'storage_type' => $request->storage_type,
-            'inventory_id' => $request->inventory_id,
+        $updateInventory = Inventory::where('id', $id)->update([
+            'inventory_type' => $request->inventory_type,
             'user_id' => auth()->user()->id,
         ]);
 
-        if (!$updateStorage) {
+        if(!$updateInventory){
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal memperbarui data Storage',
+                'message' => 'Gagal memperbarui data Inventory',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil memperbarui data Storage',
+            'message' => 'Berhasil memperbarui data Inventory',
         ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Storage $storage)
+    public function destroy(Inventory $inventory)
     {
         $user = auth()->user();
 
         if ($user->role->name != 'Admin') {
-            $this->deactivate($storage->id);
+            $this->deactivate($inventory->id);
         } else {
-            if ($storage->products()->exists()) {
+            if ($inventory->storages()->exists()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Tidak dapat menghapus data storage produk yang memiliki produk terkait'
+                    'message' => 'Tidak dapat menghapus data inventory yang memiliki storage terkait'
                 ], 422);
             }
 
-            if (!$storage->delete()) {
+            if (!$inventory->delete()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Gagal menghapus data storage',
+                    'message' => 'Gagal menghapus data inventory',
                 ], 400);
             }
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Berhasil menghapus data storage',
+                'message' => 'Berhasil menghapus data inventory',
             ], 200);
-        }
-
+        
         return response()->json([
             'status' => 'success',
-            'message' => $user->role->name != 'Admin' ? 'Berhasil menonaktifkan storage' : 'Berhasil menghapus data storage',
+            'message' => $user->role->name != 'Admin' ? 'Berhasil mengaktifkan data inventory' : 'Berhasil menghapus data inventory',
         ], 200);
+        }
     }
 
     public function deactivate($id)
     {
-        $updateStorage = Storage::where('id', $id)->update([
+        $updateInventory = Inventory::where('id', $id)->update([
             'is_active' => 0,
             'deactivated_at' => Carbon::now(),
         ]);
 
-        if (!$updateStorage) {
+        if(!$updateInventory){
             return response()->json([
-
                 'status' => 'error',
-                'message' => 'Gagal menonaktifkan Storage',
-            ], 400);
+                'message' => 'Gagal menonaktifkan Inventory',
+            ]);
         }
     }
 }

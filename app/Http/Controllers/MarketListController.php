@@ -47,9 +47,36 @@ class MarketListController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'market_list_name' => 'required|string',
-            'status' => 'requred|string',
-            ''
+            'status' => 'required|string|in:Pending, Approve, Cancel, Waiting',
+            'date' => 'required|date',
         ]);
+
+        if ($validator->fails()) {
+            return response([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $createMarketList = MarketList::create([
+            'market_list_name' => ucwords($request->market_list_name),
+            'status' => $request->status,
+            'date' => $request->date,
+            'user_id' => auth()->user()->id,
+        ]);
+
+        if (!$createMarketList) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal membuat data market list',
+            ], 400);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Berhasil membuat data market list',
+        ], 201);
     }
 
     /**
@@ -71,16 +98,90 @@ class MarketListController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, MarketList $marketList)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'market_list_name' => 'required|string',
+            'status' => 'required|string|in:Pending, Approve, Cancel, Waiting',
+            'date' => 'required|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $updateMarketList = $marketList->update([
+            'market_list_name' => ucwords($request->market_list_name),
+            'status' => $request->status,
+            'date' => $request->date,
+            'user_id' => auth()->user()->id,
+        ]);
+
+        if (!$updateMarketList) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengubah data market list',
+            ], 400);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Berhasil mengubah data market list',
+        ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(MarketList $marketList)
     {
-        //
+        $user = auth()->user();
+
+        if ($user->role->name != 'Admin') {
+            $this->deactivate($marketList->id);
+        } 
+        else {
+            if($marketList->orderList()->exists()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Tidak dapat menghapus data market list yang memiliki order list terkait'
+                ], 422);
+            }
+
+            if (!$marketList->delete()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gagal menghapus data market list',
+                ], 400);
+            }
+    
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil menghapus data market list',
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => $user->role->name != 'Admin' ? 'Berhasil menonaktifkan data market list' : 'Gagal menghapus data market list',
+        ]);
+    }
+
+    public function deactivate($id) {
+        $updateMarketList = MarketList::where('id', $id)->update([
+            'is_active' => 0,
+            'deactivated_at' => Carbon::now(),
+        ]);
+
+        if(!$updateMarketList){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal menonaktifkan market list',
+            ], 400);
+        }
     }
 }

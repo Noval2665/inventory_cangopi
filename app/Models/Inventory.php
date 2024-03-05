@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Storage extends Model
+class Inventory extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -16,15 +16,14 @@ class Storage extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'storage_type' => 'string',
+        'inventory_type' => 'string',
     ];
 
-    public function products()
-    {
-        return $this->hasMany(Product::class, "storage_id", "id");
+    public function products(){
+        return $this->hasMany(Product::class, "inventory_id", "id");
     }
 
-    public function parStocks(){
-        return $this->hasMany(ParStock::class, "storage_id", "id");
+    public function storages(){
+        return $this->hasMany(Storage::class, "inventory_id", "id");
     }
 }
