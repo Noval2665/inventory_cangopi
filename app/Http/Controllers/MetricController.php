@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Metric;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -45,6 +46,8 @@ class MetricController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
+
         $validator = Validator::make($request->all(), [
             'metric_type' => 'required|string',
         ]);
@@ -57,23 +60,47 @@ class MetricController extends Controller
             ], 422);
         }
 
-        $createMetric = Metric::create([
-            'metric_type' => ucwords($request->metric_type),
-            'user_id' => auth()->user()->id,
-        ]);
+        try {
+            $metric = Metric::where('metric_type', $request->metric_type)->withTrashed()->first();
 
-        if (!$createMetric) {
+            if ($metric) {
+                $updateMetric = Metric::where('id', $metric->id)->update([
+                    'is_active' => 1,
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$updateMetric) {
+                    throw new HttpException(400, 'Gagal mengubah data metrik');
+                }
+            } else {
+
+                $createMetric = Metric::create([
+                    'metric_type' => ucwords($request->metric_type),
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$createMetric) {
+                    throw new HttpException(400, 'Gagal membuat data metrik');
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil membuat data metrik',
+            ], 201);
+        } catch (HttpException $e) {
+            DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal membuat data metrik',
-            ], 400);
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Berhasil membuat data metrik',
-        ], 201);
     }
+
+
 
     /**
      * Display the specified resource.

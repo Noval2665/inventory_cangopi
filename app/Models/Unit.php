@@ -15,6 +15,7 @@ class Unit extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'user_id' => 'integer',
     ];
 
     public function products()

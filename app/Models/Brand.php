@@ -15,6 +15,7 @@ class Brand extends Model
     protected $dates = ['deactivated_at'];
 
     protected $casts = [
+        'user_id' => 'integer',
         'is_active' => 'boolean',
 
     ];
