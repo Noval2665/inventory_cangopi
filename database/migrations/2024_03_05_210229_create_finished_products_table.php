@@ -13,7 +13,17 @@ return new class extends Migration
     {
         Schema::create('finished_products', function (Blueprint $table) {
             $table->id();
+            $table->string('finished_product_name');
+            $table->string('price');
+            $table->string('portion');
+            $table->boolean('is_active')->default(true);
+            $table->foreignId('user_id');
+            
             $table->timestamps();
+            $table->softDeletes();
+            $table->timestamp('deactivated_at')->nullable();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 

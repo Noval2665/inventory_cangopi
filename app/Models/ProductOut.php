@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Supplier extends Model
+class ProductOut extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded = [];
@@ -17,9 +17,4 @@ class Supplier extends Model
         'is_active' => 'boolean',
         'user_id' => 'integer',
     ];
-
-    public function products()
-    {
-        return $this->hasMany(Product::class, "supplier_id", "id");
-    }
 }
