@@ -11,22 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('expense_details', function (Blueprint $table) {
+        Schema::create('product_out_details', function (Blueprint $table) {
             $table->id();
-            $table->double('quantity')->default(0);
-            $table->double('price')->default(0);
-            $table->double('total_expense')->default(0);
+            $table->double('total_quantity')->default(0);
+            $table->double('total_price')->default(0);
             $table->boolean('is_active')->default(true);
-            $table->foreignId('expense_id');
-            $table->foreignId('product_id');
+            $table->foreignId('product_out_id');
             $table->foreignId('description_id');
 
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
-            $table->foreign('expense_id')->references('id')->on('expenses')->onDelete('restrict')->onUpdate('cascade');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('product_out_id')->references('id')->on('product_outs')->onDelete('restrict')->onUpdate('cascade');
             $table->foreign('description_id')->references('id')->on('descriptions')->onDelete('restrict')->onUpdate('cascade');
         });
     }
@@ -36,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('expense_details');
+        Schema::dropIfExists('product_out_details');
     }
 };

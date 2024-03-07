@@ -51,9 +51,7 @@ class SupplierController extends Controller
 
         $validator = Validator::make($request->all(), [
             'supplier_name' => 'required|string',
-            'address' => 'nullable|string',
             'phone_number' => 'required|numeric',
-            'exception' => 'nullable|string',
 
         ]);
 
@@ -71,9 +69,7 @@ class SupplierController extends Controller
                 $supplier->restore();
 
                 $updateSupplier = $supplier->update([
-                    'address' => $request->address,
                     'phone_number' => $request->phone_number,
-                    'exception' => $request->exception,
                     'is_active' => 1,
                     'user_id' => auth()->user()->id,
                 ]);
@@ -84,9 +80,7 @@ class SupplierController extends Controller
             } else {
                 $createSupplier = Supplier::create([
                     'supplier_name' => ucwords($request->supplier_name),
-                    'address' => $request->address,
                     'phone_number' => $request->phone_number,
-                    'exception' => $request->exception,
                     'user_id' => auth()->user()->id,
                 ]);
 
@@ -134,9 +128,7 @@ class SupplierController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'supplier_name' => 'required|string',
-            'address' => 'nullable|string',
             'phone_number' => 'required|numeric',
-            'exception' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -149,9 +141,7 @@ class SupplierController extends Controller
 
         $updateSupplier = $supplier->update([
             'supplier_name' => ucwords($request->name),
-            'address' => $request->address,
             'phone_number' => $request->phone_number,
-            'exception' => $request->exception,
             'user_id' => auth()->user()->id,
         ]);
 
