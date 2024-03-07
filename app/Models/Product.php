@@ -69,6 +69,21 @@ class Product extends Model
         return $this->belongsTo(Unit::class, 'unit_id', "id");
     }
 
+<<<<<<< HEAD
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id', "id");
+    }
+
+    public function subCategory()
+    {
+        return $this->belongsTo(SubCategory::class, 'sub_category_id', "id");
+    }
+
+    public function orderLists()
+    {
+        return $this->hasMany(OrderList::class, "product_id", "id");
+=======
     public function metric()
     {
         return $this->belongsTo(Metric::class, "metric_id", "id");
@@ -76,5 +91,6 @@ class Product extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class, "supplier_id", "id");
+>>>>>>> 76adc3638b2d65ae7251929896bbcca789bfafc7
     }
 }

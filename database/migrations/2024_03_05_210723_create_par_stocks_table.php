@@ -11,29 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('order_lists', function (Blueprint $table) {
+        Schema::create('par_stocks', function (Blueprint $table) {
             $table->id();
-            
-            $table->varchar('order_code');
-
-            //$table->date('date');
-            $table->double('quantity')->default(0);
-            $table->double('total_price')->default(0);
+            $table->string('par_stock_code');
+            $table->string('par_stock_name');
+            $table->double('minimum_stock')->default(1);
             $table->boolean('is_active')->default(true);
-
             $table->foreignId('user_id');
-            $table->foreignId('product_id');
-            $table->foreignId('description_id');
+            $table->foreignId('unit_id');
+            $table->foreignId('storage_id');
 
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('restrict')->onUpdate('cascade');
-            $table->foreign('description_id')->references('id')->on('descriptions')->onDelete('restrict')->onUpdate('cascade');
-
-
+            $table->foreign('unit_id')->references('id')->on('units')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('storage_id')->references('id')->on('storages')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 
@@ -42,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('order_lists');
+        Schema::dropIfExists('par_stocks');
     }
 };

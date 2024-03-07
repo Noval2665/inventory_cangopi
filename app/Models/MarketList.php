@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Purchase extends Model
+class MarketList extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded = [];
@@ -16,4 +16,14 @@ class Purchase extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function orderList()
+    {
+        return $this->belongsTo(OrderList::class);
+    }
 }

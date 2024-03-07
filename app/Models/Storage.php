@@ -23,4 +23,8 @@ class Storage extends Model
     {
         return $this->hasMany(Product::class, "storage_id", "id");
     }
+
+    public function parStocks(){
+        return $this->hasMany(ParStock::class, "storage_id", "id");
+    }
 }

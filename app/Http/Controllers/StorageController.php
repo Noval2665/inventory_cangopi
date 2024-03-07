@@ -136,6 +136,7 @@ class StorageController extends Controller
 
         $updateStorage = $storage->update([
             'storage_type' => $request->storage_type,
+            'inventory_id' => $request->inventory_id,
             'user_id' => auth()->user()->id,
         ]);
 
