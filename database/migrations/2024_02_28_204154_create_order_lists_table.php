@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('order_lists', function (Blueprint $table) {
             $table->id();
-            
-            $table->varchar('order_code');
+
+            $table->string('order_code');
 
             //$table->date('date');
             $table->double('quantity')->default(0);
@@ -32,8 +32,6 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('restrict')->onUpdate('cascade');
             $table->foreign('description_id')->references('id')->on('descriptions')->onDelete('restrict')->onUpdate('cascade');
-
-
         });
     }
 

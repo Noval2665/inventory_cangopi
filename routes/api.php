@@ -9,6 +9,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\MetricController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\StorageController;
+use App\Http\Controllers\InventoryController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -54,4 +55,5 @@ Route::group(['middleware' => 'authenticated'], function () {
     Route::apiResource('metrics', MetricController::class);
     Route::apiResource('units', UnitController::class);
     Route::apiResource('storages', StorageController::class);
+    Route::apiResource('inventories', InventoryController::class);
 });
