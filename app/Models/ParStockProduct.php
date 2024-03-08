@@ -6,14 +6,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class purchase_report extends Model
+class ParStockProduct extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
     protected $guarded = [];
 
     protected $dates = ['deactivated_at'];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'minimum_stock' => 'double',
+        'user_id' => 'integer',
     ];
 }

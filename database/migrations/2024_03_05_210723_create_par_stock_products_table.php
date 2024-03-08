@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('par_stocks', function (Blueprint $table) {
+        Schema::create('par_stock_products', function (Blueprint $table) {
             $table->id();
-            $table->string('par_stock_code');
-            $table->string('par_stock_name');
+            $table->string('par_stock_product_code');
+            $table->string('par_stock_product_name');
             $table->double('minimum_stock')->default(1);
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');

@@ -11,23 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('recipes', function (Blueprint $table) {
+        Schema::create('product_ins', function (Blueprint $table) {
             $table->id();
-            $table->double('selling_price')->default(0);
-            $table->string('portions')->default(0);
-            $table->double('measurement')->default(0);
+            $table->date('receive_date');
+            $table->string('receive_by');
+            $table->string('notes');
+            $table->string('image');
+            $table->enum('item_status', ['complete', 'incomplete']);
             $table->boolean('is_active')->default(true);
+            $table->foreignId('order_list_id');    
             $table->foreignId('user_id');
-            $table->foreignId('par_stock_id');
-            $table->foreignId('finished_product_id');
 
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
+            $table->foreign('order_list_id')->references('id')->on('order_lists')->onDelete('restrict')->onUpdate('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
-            $table->foreign('par_stock_id')->references('id')->on('products')->onDelete('restrict')->onUpdate('cascade');
-            $table->foreign('finished_product_id')->references('id')->on('finished_products')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 
@@ -36,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('recipes');
+        Schema::dropIfExists('product_ins');
     }
 };

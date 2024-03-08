@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('finished_products', function (Blueprint $table) {
             $table->id();
+            $table->string('finished_product_code');
             $table->string('finished_product_name');
-            $table->string('price');
+            $table->string('selling_price');
             $table->string('portion');
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
