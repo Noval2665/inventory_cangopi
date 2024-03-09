@@ -47,7 +47,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'product_name' => 'required|string',
+            'product_id' => 'required|string',
             'quantity' => 'required|numeric',
             'description' => 'required|string',
         ]);
@@ -60,7 +60,7 @@ class ProductController extends Controller
         }
 
         $createOrderList = OrderList::create([
-            'product_name' => ucwords($request->product_name),
+            'product_id' => $request->product_id,
             'quantity' => $request->quantity,
             'description' => $request->description,
             'user_id' => auth()->user()->id,
@@ -101,7 +101,7 @@ class ProductController extends Controller
     public function update(Request $request, OrderList $orderList)
     {
         $validator = Validator::make($request->all(), [
-            'product_name' => 'required|string',
+            'product_id' => 'required|string',
             'quantity' => 'required|numeric',
             'description' => 'required|string',
         ]);
@@ -114,7 +114,7 @@ class ProductController extends Controller
         }
 
         $updateOrderList = $orderList->update([
-            'product_name' => ucwords($request->product_name),
+            'product_id' => $request->product_id,
             'quantity' => $request->quantity,
             'description' => $request->description,
             'user_id' => auth()->user()->id,
