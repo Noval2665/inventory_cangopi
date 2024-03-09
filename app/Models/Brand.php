@@ -15,7 +15,13 @@ class Brand extends Model
     protected $dates = ['deactivated_at'];
 
     protected $casts = [
-        'status' => 'boolean',
-        'brand_name' => 'string',
+        'user_id' => 'integer',
+        'is_active' => 'boolean',
+
     ];
+
+    public function products()
+    {
+        return $this->hasMany(Product::class, "brand_id", "id");
+    }
 }

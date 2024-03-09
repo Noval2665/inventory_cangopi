@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Brand;
-use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Carbon\Carbon;
-use App\Models\Description;
+use App\Models\Inventory;
 use Symfony\Component\Console\Descriptor\Descriptor;
 
-class DesriptionController extends Controller
+class InventoryController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -23,15 +21,15 @@ class DesriptionController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        $descriptions = Description::when($search, function ($query, $search) {
-            return $query->where('description_type', 'LIKE', '%' . $search . '%');
+        $inventories = Inventory::when($search, function ($query, $search) {
+            return $query->where('name', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Menampilkan data deskripsi',
-            'descriptions' => $descriptions,
+            'message' => 'Menampilkan data Gudang',
+            'inventories' => $inventories,
         ], 200);
     }
 
@@ -48,41 +46,64 @@ class DesriptionController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
+
         $validator = Validator::make($request->all(), [
-            'description_type' => 'required|string',
+            'inventory_type' => 'required|string',
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
+            return response([
                 'status' => 'error',
                 'errors' => $validator->errors(),
                 'message' => $validator->errors()->first(),
             ], 422);
         }
 
+        try {
+            $inventory = Inventory::where('inventory_type', $request->inventory_type)->withTrashed()->first();
 
-        $createDescription = Description::create([
-            'description_type' => ucwords($request->description_type),
-            'user_id' => auth()->user()->id,
-        ]);
+            if ($inventory) {
+                $updateInventory = Inventory::where('id', $inventory->id)->update([
+                    'is_active' => 1,
+                    'user_id' => auth()->user()->id,
+                ]);
 
-        if (!$createDescription) {
+                if (!$updateInventory) {
+                    throw new HttpException(400, 'Gagal mengubah data gudang');
+                }
+            } else {
+
+                $createInventory = Inventory::create([
+                    'inventory_type' => ucwords($request->inventory_type),
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$createInventory) {
+                    throw new HttpException(400, 'Gagal membuat data gudang');
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil membuat data gudang',
+            ], 201);
+        } catch (HttpException $e) {
+            DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal membuat data deskripsi',
-            ], 422);
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Berhasil membuat data deskripsi',
-        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Description $description)
+    public function show(string $id)
     {
         //
     }
@@ -98,10 +119,10 @@ class DesriptionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Description $description)
+    public function update(Request $request, string $id)
     {
         $validator = Validator::make($request->all(), [
-            'description_type' => 'required|string',
+            'inventory_type' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -112,78 +133,71 @@ class DesriptionController extends Controller
             ], 422);
         }
 
-        $updateDescription = $description->update([
-            'description_type' => ucwords($request->description_type),
+        $updateInventory = Inventory::where('id', $id)->update([
+            'inventory_type' => $request->inventory_type,
             'user_id' => auth()->user()->id,
         ]);
 
-        if (!$updateDescription) {
+        if (!$updateInventory) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal memperbarui data deskripsi',
+                'message' => 'Gagal memperbarui data Gudang',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil memperbarui data deskripsi',
+            'message' => 'Berhasil memperbarui data Gudang',
         ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Description $description)
+    public function destroy(Inventory $inventory)
     {
         $user = auth()->user();
 
         if ($user->role->name != 'Admin') {
-            $this->deactivate($description->id);
+            $this->deactivate($inventory->id);
         } else {
-            if ($description->PurchaseOrderDetails()->exists()) {
+            if ($inventory->storages()->exists()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Tidak dapat menghapus data deskripsi yang memiliki Purchase Order terkait'
-                ], 422);
-            }
-            if ($description->PurchaseDetails()->exists()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Tidak dapat menghapus data deskripsi yang memiliki Purchase terkait'
+                    'message' => 'Tidak dapat menghapus data gudang yang memiliki storage terkait'
                 ], 422);
             }
 
-            if (!$description->delete()) {
+            if (!$inventory->delete()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Gagal menghapus data deskripsi',
+                    'message' => 'Gagal menghapus data Gudang',
                 ], 400);
             }
+
             return response()->json([
                 'status' => 'success',
-                'message' => 'Berhasil menghapus data deskripsi',
+                'message' => 'Berhasil menghapus data Gudang',
             ], 200);
         }
-
         return response()->json([
             'status' => 'success',
-            'message' => $user->role->name == 'Admin' ? 'Berhasil menonaktifkan data deskripsi' : 'Berhasil menghapus data deskripsi',
-        ]);
+            'message' => $user->role->name != 'Admin' ? 'Berhasil menonaktifkan data Gudang' : 'Berhasil menghapus data Gudang',
+        ], 200);
     }
 
     public function deactivate($id)
     {
-        $updateDescription = Description::where('id', $id)->update([
+        $updateInventory = Inventory::where('id', $id)->update([
             'is_active' => 0,
             'deactivated_at' => Carbon::now(),
         ]);
 
-        if (!$updateDescription) {
+        if (!$updateInventory) {
             return response()->json([
-
                 'status' => 'error',
-                'message' => 'Gagal menonaktifkan deskripsi',
-            ], 400);
+                'message' => 'Gagal menonaktifkan Gudang',
+            ]);
         }
     }
 }

@@ -15,7 +15,22 @@ class Storage extends Model
     protected $dates = ['deactivated_at'];
 
     protected $casts = [
-        'status' => 'boolean',
-        'storage_type' => 'string',
+        'is_active' => 'boolean',
+        'user_id' => 'integer',
     ];
+
+    public function products()
+    {
+        return $this->hasMany(Product::class, "storage_id", "id");
+    }
+
+    public function inventory()
+    {
+        return $this->belongsTo(Inventory::class, "inventory_id", "id");
+    }
+
+    public function parStocks()
+    {
+        return $this->hasMany(ParStock::class, "storage_id", "id");
+    }
 }

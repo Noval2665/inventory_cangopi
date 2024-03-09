@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Carbon\Carbon;
 use App\Models\Unit;
+use Http;
 use Symfony\Component\Console\Descriptor\Descriptor;
 
 class UnitController extends Controller
@@ -21,18 +22,14 @@ class UnitController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        if ($search) {
-            $page = 1;
-        }
-
         $units = Unit::when($search, function ($query, $search) {
             return $query->where('unit_name', 'like', '%' . $search . '%');
-            })
+        })
             ->paginate($per_page, ['*'], 'page', $page);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil menampilkan data user',
+            'message' => 'Berhasil menampilkan data satuan',
             'units' => $units,
         ], 200);
     }
@@ -50,6 +47,8 @@ class UnitController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
+
         $validator = Validator::make($request->all(), [
             'unit_name' => 'required|string',
         ]);
@@ -61,11 +60,51 @@ class UnitController extends Controller
                 'message' => $validator->errors()->first(),
             ], 422);
         }
+
+        try {
+            $unit = Unit::where('unit_name', $request->unit_name)->withTrashed()->first();
+
+            if ($unit) {
+                $unit->restore();
+
+                $updateUnit = $unit->update([
+                    'is_active' => 1,
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$updateUnit) {
+                    throw new HttpException(400, 'Gagal mengubah data satuan');
+                }
+            } else {
+                $createUnit = Unit::create([
+                    'unit_name' => ucwords($request->unit_name),
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$createUnit) {
+                    throw new HttpException(400, 'Gagal membuat data satuan');
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil membuat data satuan',
+            ], 201);
+        } catch (HttpException $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
+        }
     }
 
     public function show(Unit $unit)
     {
-        return response()->json(['unit' => $unit], 200);
+        //
     }
 
     /**
@@ -94,19 +133,20 @@ class UnitController extends Controller
         }
 
         $updateUnit = $unit->update([
-            'unit_name' => $request->unit_name,
+            'unit_name' => ucwords($request->unit_name),
+            'user_id' => auth()->user()->id,
         ]);
 
-        if(!$updateUnit){
+        if (!$updateUnit) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unit gagal diperbarui',
+                'message' => 'Gagal mengubah data satuan',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil mengupdate data unit',
+            'message' => 'Berhasil mengubah data satuan',
         ], 200);
     }
 
@@ -116,43 +156,41 @@ class UnitController extends Controller
     public function destroy(Unit $unit)
     {
         $userLogin = auth()->user();
-        
-        if($userLogin->role->name != 'Admin') {
-            $this->deactivate($unit->id);
-        }
 
-        else {
+        if ($userLogin->role->name != 'Admin') {
+            $this->deactivate($unit->id);
+        } else {
             if ($unit->products->exists()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Unit ini sedang digunakan pada produk'
+                    'message' => 'Tidak dapat menghapus data satuan yang memiliki produk terkait'
                 ], 400);
-                
             }
 
             if (!$unit->delete()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Gagal menghapus data unit'
+                    'message' => 'Gagal menghapus data satuan'
                 ], 400);
             }
         }
         return response()->json([
             'status' => 'success',
-            'message' => $userLogin->role->name != 'admin' ? 'Berhasil menonaktifkan unit' : 'Berhasil menghapus data unit',
+            'message' => $userLogin->role->name != 'Admin' ? 'Berhasil menonaktifkan satuan' : 'Berhasil menghapus data satuan',
         ], 200);
     }
 
-    public function deactivate($id){
+    public function deactivate($id)
+    {
         $updateUnit = Unit::where('id', $id)->update([
             'is_active' => 0,
             'deactivated_at' => now(),
         ]);
 
-        if(!$updateUnit){
+        if (!$updateUnit) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menonaktifkan unit'
+                'message' => 'Gagal menonaktifkan satuan'
             ], 400);
         }
     }

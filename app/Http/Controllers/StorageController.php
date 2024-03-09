@@ -15,10 +15,22 @@ class StorageController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $storages = Storage::all();
-        return response()->json(['storages' => $storages]);
+        $page = $request->page;
+        $per_page = $request->per_page ?? 10000;
+        $search = $request->search;
+
+        $storages = Storage::with(['inventory'])->when($search, function ($query, $search) {
+            return $query->where('storage_type', 'LIKE', '%' . $search . '%');
+        })
+            ->paginate($per_page, ['*'], 'page', $page);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Menampilkan data Penyimpanan',
+            'storages' => $storages,
+        ], 200);
     }
 
     /**
@@ -34,11 +46,14 @@ class StorageController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
+
         $validator = Validator::make($request->all(), [
             'storage_type' => 'required|string',
+            'inventory_id' => 'required|numeric|exists:inventories,id',
         ]);
 
-        if ($validator->fails()){
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
                 'errors' => $validator->errors(),
@@ -46,26 +61,42 @@ class StorageController extends Controller
             ], 422);
         }
 
-        DB::startTransaction();
-        try{
-            $storage = Storage::create([
-                'storage_type' => $request->storage_type,
-            ]);
+        try {
+            $storage = Storage::where('storage_type', $request->storage_type)
+                ->where('inventory_id', $request->inventory_id)->withTrashed()->first();
 
-            if(!$storage){
-                throw new HttpException(400, 'Storage gagal ditambahkan');
+            if ($storage) {
+                $storage->restore();
+
+                $updateStorage = $storage->update([
+                    'is_active' => 1,
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$updateStorage) {
+                    throw new HttpException(400, 'Gagal mengubah data penyimpanan');
+                }
+            } else {
+                $createStorage = Storage::create([
+                    'storage_type' => $request->storage_type,
+                    'inventory_id' => $request->inventory_id,
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$createStorage) {
+                    throw new HttpException(400, 'Gagal menambahkan data penyimpanan');
+                }
             }
 
             DB::commit();
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Storage berhasil ditambahkan',
+                'message' => 'Berhasil menambahkan data penyimpanan',
             ], 201);
-        }
-
-        catch (HttpException $e){
+        } catch (HttpException $e) {
             DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage(),
@@ -78,7 +109,7 @@ class StorageController extends Controller
      */
     public function show(Storage $storage)
     {
-        return response()->json(['storage' => $storage]);
+        //
     }
 
     /**
@@ -96,9 +127,10 @@ class StorageController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'storage_type' => 'required|string',
+            'inventory_id' => 'required|numeric|exists:inventories,id',
         ]);
 
-        if ($validator->fails()){
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
                 'errors' => $validator->errors(),
@@ -108,18 +140,20 @@ class StorageController extends Controller
 
         $updateStorage = $storage->update([
             'storage_type' => $request->storage_type,
+            'inventory_id' => $request->inventory_id,
+            'user_id' => auth()->user()->id,
         ]);
 
-        if (!$updateStorage){
+        if (!$updateStorage) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Storage gagal diperbarui',
+                'message' => 'Gagal memperbarui data Penyimpanan',
             ], 400);
         }
-        
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Storage berhasil diperbarui',
+            'message' => 'Berhasil memperbarui data Penyimpanan',
         ], 200);
     }
 
@@ -128,8 +162,50 @@ class StorageController extends Controller
      */
     public function destroy(Storage $storage)
     {
-        $storage->delete();
+        $user = auth()->user();
 
-        return response()->json(['message' => 'Storage berhasil dihapus']);
+        if ($user->role->name != 'Admin') {
+            $this->deactivate($storage->id);
+        } else {
+            if ($storage->products()->exists()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Tidak dapat menghapus data Penyimpanan produk yang memiliki produk terkait'
+                ], 422);
+            }
+
+            if (!$storage->delete()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gagal menghapus data Penyimpanan',
+                ], 400);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil menghapus data Penyimpanan',
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => $user->role->name != 'Admin' ? 'Berhasil menonaktifkan Penyimpanan' : 'Berhasil menghapus data Penyimpanan',
+        ], 200);
+    }
+
+    public function deactivate($id)
+    {
+        $updateStorage = Storage::where('id', $id)->update([
+            'is_active' => 0,
+            'deactivated_at' => Carbon::now(),
+        ]);
+
+        if (!$updateStorage) {
+            return response()->json([
+
+                'status' => 'error',
+                'message' => 'Gagal menonaktifkan Storage',
+            ], 400);
+        }
     }
 }

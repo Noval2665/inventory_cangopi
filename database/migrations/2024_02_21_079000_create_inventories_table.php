@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('expenses', function (Blueprint $table) {
+        Schema::create('inventories', function (Blueprint $table) {
             $table->id();
-            $table->string('expense_number');
-            $table->date('date');
-            $table->string('receiver_name');
-            $table->double('total_item')->default(0);
-            $table->double('total_expense')->default(0);
+            $table->string('inventory_type');
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
 
@@ -34,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('expenses');
+        Schema::dropIfExists('inventories');
     }
 };

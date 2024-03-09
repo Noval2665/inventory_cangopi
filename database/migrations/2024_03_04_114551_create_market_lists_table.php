@@ -11,19 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('storages', function (Blueprint $table) {
+        Schema::create('market_lists', function (Blueprint $table) {
             $table->id();
-            $table->string('storage_type');
-            $table->boolean('is_active')->default(true);
+
+            $table->string('market_list_name');
+            $table->enum('status', ['Pending', 'Approve', 'Cancel', 'Waiting'])->default('Pending');
+            $table->date('date');
             $table->foreignId('user_id');
-            $table->foreignId('inventory_id');
+            $table->foreignId('order_list_id'); #ambil tanggal juga dari ini
 
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
-            $table->foreign('inventory_id')->references('id')->on('inventories')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('order_list_id')->references('id')->on('order_lists')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 
@@ -32,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('storages');
+        Schema::dropIfExists('market_lists');
     }
 };

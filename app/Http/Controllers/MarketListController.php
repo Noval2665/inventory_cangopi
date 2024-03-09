@@ -2,17 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Brand;
-use App\Models\Category;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use App\Models\MarketList;
 use Carbon\Carbon;
-use App\Models\Description;
-use Symfony\Component\Console\Descriptor\Descriptor;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class DesriptionController extends Controller
+class MarketListController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -23,15 +20,15 @@ class DesriptionController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        $descriptions = Description::when($search, function ($query, $search) {
-            return $query->where('description_type', 'LIKE', '%' . $search . '%');
+        $marketLists = MarketList::when($search, function ($query, $search) {
+            return $query->where('market_list_name', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
-
+        
         return response()->json([
             'status' => 'success',
-            'message' => 'Menampilkan data deskripsi',
-            'descriptions' => $descriptions,
+            'message' => 'Menampilkan data market list',
+            'market_list' => $marketLists
         ], 200);
     }
 
@@ -49,40 +46,43 @@ class DesriptionController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'description_type' => 'required|string',
+            'market_list_name' => 'required|string',
+            'status' => 'required|string|in:Pending, Approve, Cancel, Waiting',
+            'date' => 'required|date',
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
+            return response([
                 'status' => 'error',
                 'errors' => $validator->errors(),
                 'message' => $validator->errors()->first(),
             ], 422);
         }
 
-
-        $createDescription = Description::create([
-            'description_type' => ucwords($request->description_type),
+        $createMarketList = MarketList::create([
+            'market_list_name' => ucwords($request->market_list_name),
+            'status' => $request->status,
+            'date' => $request->date,
             'user_id' => auth()->user()->id,
         ]);
 
-        if (!$createDescription) {
+        if (!$createMarketList) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal membuat data deskripsi',
-            ], 422);
+                'message' => 'Gagal membuat data market list',
+            ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil membuat data deskripsi',
+            'message' => 'Berhasil membuat data market list',
         ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Description $description)
+    public function show(string $id)
     {
         //
     }
@@ -98,91 +98,89 @@ class DesriptionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Description $description)
+    public function update(Request $request, MarketList $marketList)
     {
         $validator = Validator::make($request->all(), [
-            'description_type' => 'required|string',
+            'market_list_name' => 'required|string',
+            'status' => 'required|string|in:Pending, Approve, Cancel, Waiting',
+            'date' => 'required|date',
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
+            return response([
                 'status' => 'error',
                 'errors' => $validator->errors(),
                 'message' => $validator->errors()->first(),
             ], 422);
         }
 
-        $updateDescription = $description->update([
-            'description_type' => ucwords($request->description_type),
+        $updateMarketList = $marketList->update([
+            'market_list_name' => ucwords($request->market_list_name),
+            'status' => $request->status,
+            'date' => $request->date,
             'user_id' => auth()->user()->id,
         ]);
 
-        if (!$updateDescription) {
+        if (!$updateMarketList) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal memperbarui data deskripsi',
+                'message' => 'Gagal mengubah data market list',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil memperbarui data deskripsi',
+            'message' => 'Berhasil mengubah data market list',
         ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Description $description)
+    public function destroy(MarketList $marketList)
     {
         $user = auth()->user();
 
         if ($user->role->name != 'Admin') {
-            $this->deactivate($description->id);
-        } else {
-            if ($description->PurchaseOrderDetails()->exists()) {
+            $this->deactivate($marketList->id);
+        } 
+        else {
+            if($marketList->orderList()->exists()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Tidak dapat menghapus data deskripsi yang memiliki Purchase Order terkait'
-                ], 422);
-            }
-            if ($description->PurchaseDetails()->exists()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Tidak dapat menghapus data deskripsi yang memiliki Purchase terkait'
+                    'message' => 'Tidak dapat menghapus data market list yang memiliki order list terkait'
                 ], 422);
             }
 
-            if (!$description->delete()) {
+            if (!$marketList->delete()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Gagal menghapus data deskripsi',
+                    'message' => 'Gagal menghapus data market list',
                 ], 400);
             }
+    
             return response()->json([
                 'status' => 'success',
-                'message' => 'Berhasil menghapus data deskripsi',
+                'message' => 'Berhasil menghapus data market list',
             ], 200);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => $user->role->name == 'Admin' ? 'Berhasil menonaktifkan data deskripsi' : 'Berhasil menghapus data deskripsi',
+            'message' => $user->role->name != 'Admin' ? 'Berhasil menonaktifkan data market list' : 'Gagal menghapus data market list',
         ]);
     }
 
-    public function deactivate($id)
-    {
-        $updateDescription = Description::where('id', $id)->update([
+    public function deactivate($id) {
+        $updateMarketList = MarketList::where('id', $id)->update([
             'is_active' => 0,
             'deactivated_at' => Carbon::now(),
         ]);
 
-        if (!$updateDescription) {
+        if(!$updateMarketList){
             return response()->json([
-
                 'status' => 'error',
-                'message' => 'Gagal menonaktifkan deskripsi',
+                'message' => 'Gagal menonaktifkan market list',
             ], 400);
         }
     }

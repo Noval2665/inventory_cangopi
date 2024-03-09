@@ -6,24 +6,24 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Description extends Model
+class MarketList extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded = [];
+
     protected $dates = ['deactivated_at'];
+
     protected $casts = [
         'is_active' => 'boolean',
-        'description_type' => 'string',
-        'user_id' => 'integer',
     ];
 
-    public function PurchaseOrderDetails()
+    public function user()
     {
-        return $this->hasMany(PurchaseOrderDetail::class, "description_id", "id");
+        return $this->belongsTo(User::class);
     }
 
-    public function PurchaseDetails()
+    public function orderList()
     {
-        return $this->hasMany(PurchaseDetail::class, "description_id", "id");
+        return $this->belongsTo(OrderList::class);
     }
 }
