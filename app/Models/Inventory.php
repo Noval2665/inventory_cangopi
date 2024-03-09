@@ -17,13 +17,16 @@ class Inventory extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'inventory_type' => 'string',
+        'user_id' => 'integer',
     ];
 
-    public function products(){
-        return $this->hasMany(Product::class, "inventory_id", "id");
-    }
+    // public function products()
+    // {
+    //     return $this->hasMany(Product::class, "inventory_id", "id");
+    // }
 
-    public function storages(){
+    public function storages()
+    {
         return $this->hasMany(Storage::class, "inventory_id", "id");
     }
 }

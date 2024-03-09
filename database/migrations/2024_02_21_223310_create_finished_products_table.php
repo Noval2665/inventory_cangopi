@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('portion');
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
-            
+
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
