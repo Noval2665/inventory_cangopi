@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\MarketList;
+use App\Models\PurchaseReport;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +29,7 @@ class PurchaseOrderDetailController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Menampilkan data laporan penjualan',
-            'categories' => $purchase_order,
+            //'categories' => $purchase_order,
         ], 200);
     }
 
@@ -41,12 +42,12 @@ class PurchaseOrderDetailController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
+    * Store a newly created resource in storage.
+    */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            '' => 'required|string',
+            'item_name' => 'required|string', // Menyesuaikan kunci untuk validasi
         ]);
 
         if ($validator->fails()) {
@@ -62,7 +63,7 @@ class PurchaseOrderDetailController extends Controller
             'user_id' => auth()->user()->id,
         ]);
 
-        if (!$createReport) {
+        if (!$report) { // Mengubah $createReport menjadi $report
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagal menambah laporan penjualan',
@@ -107,3 +108,5 @@ class PurchaseOrderDetailController extends Controller
         //
     }
 }
+
+?>
