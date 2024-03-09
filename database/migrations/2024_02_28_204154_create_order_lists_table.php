@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('order_lists', function (Blueprint $table) {
             $table->id();
             
-            $table->varchar('order_code');
+            $table->string('order_code');
             $table->date('date');
             $table->double('quantity')->default(0);
             $table->double('total_price')->default(0);
