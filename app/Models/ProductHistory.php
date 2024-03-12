@@ -16,4 +16,14 @@ class ProductHistory extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function inventory()
+    {
+        return $this->belongsTo(Inventory::class);
+    }
 }

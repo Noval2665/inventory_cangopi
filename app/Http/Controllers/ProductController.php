@@ -102,6 +102,7 @@ class CategoryController extends Controller
                     'unit' => $request->unit_id,
                     'metric_id' => $request->metric_id,
                     'supplier_id' => $request->supplier_id,
+                    
                     'purchase_price' => $request->purchase_price,
                     'min_stock' => $request->min_stock,
                     'stock' => $request->stock,
@@ -125,6 +126,7 @@ class CategoryController extends Controller
                     'unit' => $request->unit_id,
                     'metric_id' => $request->metric_id,
                     'supplier_id' => $request->supplier_id,
+
                     'purchase_price' => $request->purchase_price,
                     'min_stock' => $request->min_stock,
                     'stock' => $request->stock,
