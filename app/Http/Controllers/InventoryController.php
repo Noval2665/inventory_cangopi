@@ -28,7 +28,7 @@ class InventoryController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Menampilkan data Inventory',
+            'message' => 'Menampilkan data Gudang',
             'inventories' => $inventories,
         ], 200);
     }
@@ -46,34 +46,58 @@ class InventoryController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
+
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string',
+            'inventory_type' => 'required|string',
         ]);
 
-        if ($validator->fails()){
-            return response()->json([
+        if ($validator->fails()) {
+            return response([
                 'status' => 'error',
                 'errors' => $validator->errors(),
                 'message' => $validator->errors()->first(),
             ], 422);
         }
 
-        $createInventory = Inventory::create([
-            'inventory_type' => $request->inventory_type,
-            'user_id' => auth()->user()->id,
-        ]);
+        try {
+            $inventory = Inventory::where('inventory_type', $request->inventory_type)->withTrashed()->first();
 
-        if (!$createInventory) {
+            if ($inventory) {
+                $updateInventory = Inventory::where('id', $inventory->id)->update([
+                    'is_active' => 1,
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$updateInventory) {
+                    throw new HttpException(400, 'Gagal mengubah data gudang');
+                }
+            } else {
+
+                $createInventory = Inventory::create([
+                    'inventory_type' => ucwords($request->inventory_type),
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$createInventory) {
+                    throw new HttpException(400, 'Gagal membuat data gudang');
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil membuat data gudang',
+            ], 201);
+        } catch (HttpException $e) {
+            DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menambahkan data Inventory',
-            ], 400);
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Berhasil menambahkan data Inventory',
-        ], 201);
     }
 
     /**
@@ -101,7 +125,7 @@ class InventoryController extends Controller
             'inventory_type' => 'required|string',
         ]);
 
-        if ($validator->fails()){
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
                 'errors' => $validator->errors(),
@@ -114,16 +138,16 @@ class InventoryController extends Controller
             'user_id' => auth()->user()->id,
         ]);
 
-        if(!$updateInventory){
+        if (!$updateInventory) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal memperbarui data Inventory',
+                'message' => 'Gagal memperbarui data Gudang',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil memperbarui data Inventory',
+            'message' => 'Berhasil memperbarui data Gudang',
         ], 200);
     }
 
@@ -140,27 +164,26 @@ class InventoryController extends Controller
             if ($inventory->storages()->exists()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Tidak dapat menghapus data inventory yang memiliki storage terkait'
+                    'message' => 'Tidak dapat menghapus data gudang yang memiliki storage terkait'
                 ], 422);
             }
 
             if (!$inventory->delete()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Gagal menghapus data inventory',
+                    'message' => 'Gagal menghapus data Gudang',
                 ], 400);
             }
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Berhasil menghapus data inventory',
+                'message' => 'Berhasil menghapus data Gudang',
             ], 200);
-        
+        }
         return response()->json([
             'status' => 'success',
-            'message' => $user->role->name != 'Admin' ? 'Berhasil mengaktifkan data inventory' : 'Berhasil menghapus data inventory',
+            'message' => $user->role->name != 'Admin' ? 'Berhasil menonaktifkan data Gudang' : 'Berhasil menghapus data Gudang',
         ], 200);
-        }
     }
 
     public function deactivate($id)
@@ -170,10 +193,10 @@ class InventoryController extends Controller
             'deactivated_at' => Carbon::now(),
         ]);
 
-        if(!$updateInventory){
+        if (!$updateInventory) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menonaktifkan Inventory',
+                'message' => 'Gagal menonaktifkan Gudang',
             ]);
         }
     }

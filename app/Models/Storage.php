@@ -24,7 +24,13 @@ class Storage extends Model
         return $this->hasMany(Product::class, "storage_id", "id");
     }
 
-    public function parStocks(){
+    public function inventory()
+    {
+        return $this->belongsTo(Inventory::class, "inventory_id", "id");
+    }
+
+    public function parStocks()
+    {
         return $this->hasMany(ParStock::class, "storage_id", "id");
     }
 }

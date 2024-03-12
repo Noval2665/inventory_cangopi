@@ -21,7 +21,7 @@ class StorageController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        $storages = Storage::when($search, function ($query, $search) {
+        $storages = Storage::with(['inventory'])->when($search, function ($query, $search) {
             return $query->where('storage_type', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
@@ -50,6 +50,7 @@ class StorageController extends Controller
 
         $validator = Validator::make($request->all(), [
             'storage_type' => 'required|string',
+            'inventory_id' => 'required|numeric|exists:inventories,id',
         ]);
 
         if ($validator->fails()) {
@@ -61,7 +62,8 @@ class StorageController extends Controller
         }
 
         try {
-            $storage = Storage::where('storage_type', $request->storage_type)->withTrashed()->first();
+            $storage = Storage::where('storage_type', $request->storage_type)
+                ->where('inventory_id', $request->inventory_id)->withTrashed()->first();
 
             if ($storage) {
                 $storage->restore();
@@ -77,6 +79,7 @@ class StorageController extends Controller
             } else {
                 $createStorage = Storage::create([
                     'storage_type' => $request->storage_type,
+                    'inventory_id' => $request->inventory_id,
                     'user_id' => auth()->user()->id,
                 ]);
 
@@ -124,6 +127,7 @@ class StorageController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'storage_type' => 'required|string',
+            'inventory_id' => 'required|numeric|exists:inventories,id',
         ]);
 
         if ($validator->fails()) {
