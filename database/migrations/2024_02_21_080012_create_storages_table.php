@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('storage_type');
             $table->boolean('is_active')->default(true);
-            $table->foreignId('user_id');
             $table->foreignId('inventory_id');
+            $table->foreignId('user_id');
 
             $table->timestamps();
             $table->softDeletes();
