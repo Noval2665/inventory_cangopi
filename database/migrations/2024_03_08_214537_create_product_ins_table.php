@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('product_ins', function (Blueprint $table) {
             $table->id();
             $table->date('receive_date');
+            $table->string('receive_code');
             $table->string('receive_by');
             $table->string('notes');
             $table->string('image');
