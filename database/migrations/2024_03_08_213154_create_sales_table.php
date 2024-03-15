@@ -16,7 +16,7 @@ return new class extends Migration
             $table->date('start_date');
             $table->date('end_date');
             $table->double('quantity_sold')->default(0);
-            $table->double('gross_profit')->default(0);
+            //$table->double('gross_profit')->default(0); bisa harga jual * qty
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
             $table->foreignId('finished_product_id');
