@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ProductHistory extends Model
+class ProductInDetail extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded = [];
@@ -22,8 +22,8 @@ class ProductHistory extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function inventory()
+    public function productIn()
     {
-        return $this->belongsTo(Inventory::class);
+        return $this->belongsTo(ProductIn::class);
     }
 }

@@ -17,4 +17,14 @@ class ProductOut extends Model
         'is_active' => 'boolean',
         'user_id' => 'integer',
     ];
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

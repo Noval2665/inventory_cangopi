@@ -6,9 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class purchase_report extends Model
+class Sales extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
     protected $guarded = [];
 
     protected $dates = ['deactivated_at'];
@@ -16,4 +17,14 @@ class purchase_report extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, "user_id", "id");
+    }
+
+    public function finishedProduct()
+    {
+        return $this->belongsTo(FinishedProduct::class, "finished_product_id", "id");
+    }
 }

@@ -11,19 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sub_categories', function (Blueprint $table) {
+        Schema::create('sales', function (Blueprint $table) {
             $table->id();
-            $table->string('sub_category_name');
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->double('quantity_sold')->default(0);
+            //$table->double('gross_profit')->default(0); bisa harga jual * qty
             $table->boolean('is_active')->default(true);
-            $table->foreignId('category_id');
             $table->foreignId('user_id');
+            $table->foreignId('finished_product_id');
 
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
-            $table->foreign('category_id')->references('id')->on('categories')->onUpdate('cascade')->onDelete('restrict');
-            $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('restrict');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('finished_product_id')->references('id')->on('finished_products')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 
@@ -32,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sub_categories');
+        Schema::dropIfExists('sales');
     }
 };

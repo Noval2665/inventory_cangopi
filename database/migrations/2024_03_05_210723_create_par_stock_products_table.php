@@ -11,23 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('recipes', function (Blueprint $table) {
+        Schema::create('par_stock_products', function (Blueprint $table) {
             $table->id();
-            $table->double('selling_price')->default(0);
-            $table->string('portions')->default(0);
-            $table->double('measurement')->default(0);
+            $table->string('par_stock_product_code');
+            $table->string('par_stock_product_name');
+            $table->double('minimum_stock')->default(1);
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
-            $table->foreignId('par_stock_id');
-            $table->foreignId('finished_product_id');
+            $table->foreignId('metric_id');
+            $table->foreignId('storage_id');
 
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
-            $table->foreign('par_stock_id')->references('id')->on('products')->onDelete('restrict')->onUpdate('cascade');
-            $table->foreign('finished_product_id')->references('id')->on('finished_products')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('metric_id')->references('id')->on('units')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('storage_id')->references('id')->on('storages')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 
@@ -36,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('recipes');
+        Schema::dropIfExists('par_stocks');
     }
 };

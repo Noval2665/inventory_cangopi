@@ -11,23 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('par_stocks', function (Blueprint $table) {
+        Schema::create('purchasing_receipts', function (Blueprint $table) {
             $table->id();
-            $table->string('par_stock_code');
-            $table->string('par_stock_name');
-            $table->double('minimum_stock')->default(1);
+            $table->string('image');
+            $table->double('real_total_price');
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
-            $table->foreignId('metric_id');
-            $table->foreignId('storage_id');
+            $table->foreignId('order_list_id');
 
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
-            $table->foreign('metric_id')->references('id')->on('units')->onDelete('restrict')->onUpdate('cascade');
-            $table->foreign('storage_id')->references('id')->on('storages')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('order_list_id')->references('id')->on('order_lists')->onDelete('restrict')->onUpdate('cascade');
+
         });
     }
 
@@ -36,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('par_stocks');
+        Schema::dropIfExists('purchasing_receipts');
     }
 };

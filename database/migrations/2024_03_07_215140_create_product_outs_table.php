@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('product_outs', function (Blueprint $table) {
             $table->id();
             $table->date('date');
-            $table->double('total_item')->default(0);
+            $table->string('out_by');
+            $table->double('quantity')->default(0);
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
             $table->foreignId('product_id');
