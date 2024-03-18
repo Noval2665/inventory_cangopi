@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpKernel\Exception\HttpException;
-use Carbon\Carbon;
 use App\Models\ParStock;
-use Symfony\Component\Console\Descriptor\Descriptor;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class ParStockController extends Controller
 {
@@ -21,15 +20,15 @@ class ParStockController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        $parStocks = ParStock::when($search, function ($query, $search) {
-            return $query->where('storage_type', 'LIKE', '%' . $search . '%');
+        $parstock = ParStock::when($search, function ($query, $search) {
+            return $query->where('par_stock', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
-        
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Menampilkan data Par Stock',
-            'parStocks' => $parStocks,
+            'message' => 'Menampilkan data par stock',
+            'parstock' => $parstock,
         ], 200);
     }
 
@@ -47,44 +46,33 @@ class ParStockController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'par_stock_code' => 'required|string',
-            'par_stock_name' => ucwords('required|string'),
-            'minimum_stock' => 'required|numeric',
-            'is_active' => 'required|boolean',
-            'user_id' => 'required|integer',
-            'unit_id' => 'required|integer',
-            'storage_id' => 'required|integer',
+            'par_stock' => 'required|string',
         ]);
 
-        if($validator->fails()){
-            return response()->json([
+        if ($validator->fails()) {
+            return response([
                 'status' => 'error',
                 'errors' => $validator->errors(),
                 'message' => $validator->errors()->first(),
-            ]);
+            ], 422);
         }
 
-        $createParStock = ParStock::create([
-            'par_stock_code' => $request->par_stock_code,
-            'par_stock_name' => $request->par_stock_name,
-            'minimum_stock' => $request->minimum_stock,
-            'is_active' => $request->is_active,
+        $createParstock = ParStock::create([
+            //'' => ucwords($request->),
             'user_id' => auth()->user()->id,
-            'unit_id' => $request->unit_id,
-            'storage_id' => $request->storage_id,
         ]);
 
-        if(!$createParStock){
+        if (!$createParstock) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menambahkan data Par Stock',
+                'message' => 'Gagal membuat data par stock',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil menambahkan data Par Stock',
-        ], 200);
+            'message' => 'Berhasil membuat data par stock',
+        ], 201);
     }
 
     /**
@@ -109,43 +97,32 @@ class ParStockController extends Controller
     public function update(Request $request, ParStock $parStock)
     {
         $validator = Validator::make($request->all(), [
-            'par_stock_code' => 'required|string',
-            'par_stock_name' => ucwords('required|string'),
-            'minimum_stock' => 'required|numeric',
-            'is_active' => 'required|boolean',
-            'user_id' => 'required|integer',
-            'unit_id' => 'required|integer',
-            'storage_id' => 'required|integer',
+            'par_stock' => 'required|string',
         ]);
 
-        if($validator->fails()){
-            return response()->json([
+        if ($validator->fails()) {
+            return response([
                 'status' => 'error',
                 'errors' => $validator->errors(),
                 'message' => $validator->errors()->first(),
-            ]);
+            ], 422);
         }
 
-        $updateParStock = $parStock->update([
-            'par_stock_code' => $request->par_stock_code,
-            'par_stock_name' => $request->par_stock_name,
-            'minimum_stock' => $request->minimum_stock,
-            'is_active' => $request->is_active,
+        $updateParstock = $parStock->update([
+            'par_stock' => ucwords($request->par_stock),
             'user_id' => auth()->user()->id,
-            'unit_id' => $request->unit_id,
-            'storage_id' => $request->storage_id,
         ]);
 
-        if(!$updateParStock){
+        if (!$updateParstock) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal memperbarui data Par Stock',
+                'message' => 'Gagal mengubah data kategori',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil memperbarui data Par Stock',
+            'message' => 'Berhasil mengubah data par stock',
         ], 200);
     }
 
@@ -158,37 +135,48 @@ class ParStockController extends Controller
 
         if ($user->role->name != 'Admin') {
             $this->deactivate($parStock->id);
-        } 
-        else {
+        } else {
+            $parStock = ParStock::where('id', $parStock->id)->first();
+
             if (!$parStock->delete()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Gagal menghapus data Par Stock',
+                    'message' => 'Gagal menghapus data par stock',
                 ], 400);
             }
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Berhasil menghapus data Par Stock',
+                'message' => 'Berhasil menghapus par stock',
             ], 200);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => $user->role->name != 'Admin' ? 'Berhasil menontaktifkan data Par Stock' : 'Berhasil menghapus data Par Stock',
+            'message' => $user->role->name != 'Admin' ? 'Berhasil menonaktifkan data par stock' : 'Berhasil menghapus data par stock',
         ], 200);
     }
 
-    public function deactivate($id){
-        $updateParStock = ParStock::where('id', $id)->update([
+    public function activate($id)
+    {
+        $updateParstock = ParStock::where('id', $id)->update([
+            'is_active' => 1,
+            'activated_at' => Carbon::now(),
+        ]);
+    }
+
+    public function deactivate($id)
+    {
+        $updateParstock = ParStock::where('id', $id)->update([
             'is_active' => 0,
             'deactivated_at' => Carbon::now(),
         ]);
 
-        if(!$updateParStock){
+        if (!$updateParstock) {
             return response()->json([
+
                 'status' => 'error',
-                'message' => 'Gagal menonaktifkan Par Stock',
+                'message' => 'Gagal menonaktifkan par stock',
             ], 400);
         }
     }

@@ -11,18 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('market_lists', function (Blueprint $table) {
+        Schema::create('caterings', function (Blueprint $table) {
             $table->id();
-            $table->string('market_list_code');
-            $table->string('market_list_name');
+            $table->string('catering_code');
+            $table->string('catering_name');
             $table->enum('status', ['Pending', 'Approve', 'Cancel', 'Waiting'])->default('Pending');
             $table->date('date');
-            $table->text('explanation')->nullable(); //exclusive finance
-            $table->string('receipt_image')->nullable(); //exclusive finance
             $table->foreignId('user_id');
-            $table->foreignId('order_list_id'); #ambil tanggal juga dari ini
-
-            //receipt image itu foto struk pas di approve dan diturunin dana finance
+            $table->foreignId('order_list_id');
 
             $table->timestamps();
             $table->softDeletes();
@@ -38,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('market_lists');
+        Schema::dropIfExists('caterings');
     }
 };

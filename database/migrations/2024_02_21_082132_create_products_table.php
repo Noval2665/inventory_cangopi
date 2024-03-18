@@ -17,8 +17,10 @@ return new class extends Migration
             $table->string('product_code');
             $table->string('product_name');
             $table->double('purchase_price');
+            $table->double('min_stock');
             $table->double('stock'); //in units
-            $table->double('measurement'); //in metric
+            $table->double('measurement')->default(0); //in metric
+            $table->text('automatic_use')->default(0);
             $table->string('image')->nullable();
             $table->boolean('is_active')->default(true);
 

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class PurchaseReport extends Model
+class Sales extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -18,17 +18,13 @@ class PurchaseReport extends Model
         'is_active' => 'boolean',
     ];
 
-    public function generatePdf($id)
+    public function user()
     {
-        $pdfFilePath = $this->find($id)->exportToPdf();
-        return response()->download($pdfFilePath);
+        return $this->belongsTo(User::class, "user_id", "id");
     }
 
-    public function generateExcel($id)
+    public function finishedProduct()
     {
-        $excelFilePath = $this->find($id)->exportToExcel();
-        return response()->download($excelFilePath);
+        return $this->belongsTo(FinishedProduct::class, "finished_product_id", "id");
     }
 }
-
-?>

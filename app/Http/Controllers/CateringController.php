@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class PurchaseOrderDetailController extends Controller
+class CateringController extends Controller
 {
     /**
      * Display a listing of the resource.
