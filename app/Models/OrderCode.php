@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Catering extends Model
+class OrderCode extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded = [];
@@ -19,11 +19,11 @@ class Catering extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, "user_id", "id");
     }
 
     public function orderList()
     {
-        return $this->belongsTo(OrderList::class);
+        return $this->belongsTo(OrderList::class, "order_list_id", "id");
     }
 }

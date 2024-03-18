@@ -19,4 +19,18 @@ class ParStockProduct extends Model
         'minimum_stock' => 'double',
         'user_id' => 'integer',
     ];
+
+    public function generatePdf($id)
+    {
+        $pdfFilePath = $this->find($id)->exportToPdf();
+        return response()->download($pdfFilePath);
+    }
+
+    public function generateExcel($id)
+    {
+        $excelFilePath = $this->find($id)->exportToExcel();
+        return response()->download($excelFilePath);
+    }
 }
+
+?>
