@@ -13,21 +13,19 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-
             $table->string('product_name');
             $table->double('purchase_price');
             $table->double('stock');
             $table->double('size');
             $table->string('image')->nullable();
-            $table->boolean('is_active')->default(true);
-
-            $table->foreignId('user_id');
             $table->foreignId('sub_category_id');
             $table->foreignId('storage_id');
             $table->foreignId('brand_id');
             $table->foreignId('unit_id');
             $table->foreignId('metric_id');
             $table->foreignId('supplier_id');
+            $table->foreignId('user_id');
+            $table->boolean('is_active')->default(true);
 
             $table->timestamps();
             $table->softDeletes();
