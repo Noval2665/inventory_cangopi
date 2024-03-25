@@ -20,8 +20,8 @@ class ProductOutController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        $productOuts = ProductOut::when($search, function ($query, $search) {
-            return $query->where('product_name', 'LIKE', '%' . $search . '%');
+        $productOuts = ProductOut::when($search, function ($query, $date) {
+            return $query->where('date', '>=', );
         })
             ->paginate($per_page, ['*'], 'page', $page);
 
@@ -59,7 +59,7 @@ class ProductOutController extends Controller
         }
 
         $createProductOut = ProductOut::create([
-            'date' => $request->date,
+            'date' => $request->date ? date('Y-m-d', strtotime($request->date)) : null,
             'out_by' => $request->out_by,
             'quantity' => $request->quantity,
             'product_id' => $request->product_id,
@@ -76,7 +76,7 @@ class ProductOutController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Berhasil membuat data produk keluar',
-        ], 200);   
+        ], 201);   
     }
 
     /**
@@ -115,7 +115,7 @@ class ProductOutController extends Controller
         }
 
         $updateProductOut = $productOut->update([
-            'date' => $request->date,
+            'date' => $request->date ? date('Y-m-d', strtotime($request->date)) : null,
             'out_by' => $request->out_by,
             'quantity' => $request->quantity,
             'product_id' => $request->product_id,

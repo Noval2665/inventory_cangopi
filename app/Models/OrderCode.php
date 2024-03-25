@@ -6,13 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-<<<<<<< HEAD
-class purchase_report extends Model
-=======
-class ParStockProduct extends Model
->>>>>>> 6b61013e59b4772727db4b17f5a88d0c76d8980d
+class OrderCode extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $guarded = [];
 
     protected $dates = ['deactivated_at'];
@@ -20,4 +16,14 @@ class ParStockProduct extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, "user_id", "id");
+    }
+
+    public function orderList()
+    {
+        return $this->belongsTo(OrderList::class, "order_list_id", "id");
+    }
 }
