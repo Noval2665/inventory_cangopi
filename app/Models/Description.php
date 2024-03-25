@@ -10,4 +10,20 @@ class Description extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded = [];
+    protected $dates = ['deactivated_at'];
+    protected $casts = [
+        'is_active' => 'boolean',
+        'description_type' => 'string',
+        'user_id' => 'integer',
+    ];
+
+    public function PurchaseOrderDetails()
+    {
+        return $this->hasMany(PurchaseOrderDetail::class, "description_id", "id");
+    }
+
+    public function PurchaseDetails()
+    {
+        return $this->hasMany(PurchaseDetail::class, "description_id", "id");
+    }
 }

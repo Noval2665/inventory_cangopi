@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('storage_type');
             $table->boolean('is_active')->default(true);
+            $table->foreignId('inventory_id');
             $table->foreignId('user_id');
 
             $table->timestamps();
@@ -22,6 +23,7 @@ return new class extends Migration
             $table->timestamp('deactivated_at')->nullable();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('inventory_id')->references('id')->on('inventories')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 

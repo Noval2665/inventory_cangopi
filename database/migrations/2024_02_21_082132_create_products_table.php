@@ -13,15 +13,18 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
+            $table->string('product_code');
             $table->string('product_name');
             $table->double('purchase_price');
-            $table->double('stock');
-            $table->double('size');
+            $table->double('min_stock');
+            $table->double('stock'); //in units
+            $table->double('measurement')->default(0); //in metric
+            $table->text('automatic_use')->default(0);
             $table->string('image')->nullable();
-            $table->foreignId('sub_category_id');
-            $table->foreignId('storage_id');
-            $table->foreignId('brand_id');
-            $table->foreignId('unit_id');
+            $table->foreignId('sub_category_id'); //udah(nicxon)
+            $table->foreignId('storage_id'); //udah
+            $table->foreignId('brand_id'); //udah
+            $table->foreignId('unit_id'); //udah
             $table->foreignId('metric_id');
             $table->foreignId('supplier_id');
             $table->foreignId('user_id');
