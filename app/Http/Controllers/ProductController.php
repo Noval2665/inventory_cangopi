@@ -6,10 +6,12 @@ use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class CategoryController extends Controller
+class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -55,24 +57,21 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        DB::beginTransaction();
-
         $validator = Validator::make($request->all(), [
-            'product_code' => 'required|string',
             'product_name' => 'required|string',
-            'purchase_price' => 'required|double',
-            'min_stock' => 'required|double',
-            'stock' => 'required|numeric',
-            'measurement' => 'required|numeric',
-            'automatic_use' => 'required|numeric',
-            'image' => 'nullable|string',
-
-            'sub_category_id' => 'required|numeric|exists:sub_categories,id',
             'brand_id' => 'required|numeric|exists:brands,id',
-            'storage_id' => 'required|numeric|exists:storages,id',
+            'sub_category_id' => 'required|numeric|exists:sub_categories,id',
+            'min_stock' => 'required|numeric',
+            'automatic_use' => 'required|numeric',
+            'purchase_price' => Rule::requiredIf($request->product_type == 'raw'),
+            'selling_price' => Rule::requiredIf($request->product_type == 'finished'),
             'unit_id' => 'required|numeric|exists:units,id',
+            'measurement' => 'required|numeric',
             'metric_id' => 'required|numeric|exists:metrics,id',
+            'image' => 'nullable',
+            'storage_id' => 'required|numeric|exists:storages,id',
             'supplier_id' => 'required|numeric|exists:suppliers,id',
+            'product_type' => 'required|string|in:raw,finished',
         ]);
 
         if ($validator->fails()) {
@@ -83,63 +82,38 @@ class CategoryController extends Controller
             ], 422);
         }
 
-        try {
+        DB::beginTransaction();
 
+        try {
             do {
                 $year = date('Y', strtotime(Carbon::now()));
                 $productCode = Product::generateProductCode($year);
             } while (Product::where('product_code', $productCode)->exists());
 
-            $product = Product::where('product_name', ucwords($request->product_name))->withTrashed()->first();
+            $createProduct = Product::create([
+                'product_code' => $productCode,
+                'product_name' => ucwords($request->product_name),
+                'brand_id' => $request->brand_id,
+                'sub_category_id' => $request->sub_category_id,
+                'min_stock' => $request->min_stock,
+                'stock' => 0,
+                'automatic_use' => $request->automatic_use,
+                'purchase_price' => $request->product_type == 'raw' ? $request->purchase_price : 0,
+                'selling_price' => $request->product_type == 'finished' ? $request->purchase_price : 0,
+                'unit_id' => $request->unit_id,
+                'measurement' => $request->measurement,
+                'metric_id' => $request->metric_id,
+                'image' => $request->file('image')
+                    ? $request->file('image')->store('images', 'public')
+                    : null,
+                'storage_id' => $request->storage_id,
+                'supplier_id' => $request->supplier_id,
+                'product_type' => $request->product_type,
+                'user_id' => auth()->user()->id,
+            ]);
 
-            if ($product) {
-                $product->restore();
-
-                $updateProduct = $product->update([
-                    'sub_category_id' => $request->sub_category_id,
-                    'brand_id' => $request->brand_id,
-                    'storage_id' => $request->storage_id,
-                    'unit' => $request->unit_id,
-                    'metric_id' => $request->metric_id,
-                    'supplier_id' => $request->supplier_id,
-                    
-                    'purchase_price' => $request->purchase_price,
-                    'min_stock' => $request->min_stock,
-                    'stock' => $request->stock,
-                    'measurement' => $request->measurement,
-                    'automatic_use' => $request->automatic_use,
-                    'image' => $request->image,
-                    'is_active' => 1,
-                    'user_id' => auth()->user()->id,
-                ]);
-
-                if (!$updateProduct) {
-                    throw new HttpException(400, 'Gagal mengubah data produk');
-                }
-            } else {
-                $createProduct = Product::create([
-                    'product_code' => $productCode,
-                    'product_name' => ucwords($request->product_name),
-                    'sub_category_id' => $request->sub_category_id,
-                    'brand_id' => $request->brand_id,
-                    'storage_id' => $request->storage_id,
-                    'unit' => $request->unit_id,
-                    'metric_id' => $request->metric_id,
-                    'supplier_id' => $request->supplier_id,
-
-                    'purchase_price' => $request->purchase_price,
-                    'min_stock' => $request->min_stock,
-                    'stock' => $request->stock,
-                    'measurement' => $request->measurement,
-                    'automatic_use' => $request->automatic_use,
-                    'image' => $request->image,
-                    'is_active' => 1,
-                    'user_id' => auth()->user()->id,
-                ]);
-
-                if (!$createProduct) {
-                    throw new HttpException(400, 'Gagal membuat data produk');
-                }
+            if (!$createProduct) {
+                throw new HttpException(400, 'Gagal membuat data produk');
             }
 
             DB::commit();
@@ -180,21 +154,20 @@ class CategoryController extends Controller
     public function update(Request $request, Product $product)
     {
         $validator = Validator::make($request->all(), [
-            'product_code' => 'required|string',
             'product_name' => 'required|string',
-            'purchase_price' => 'required|double',
-            'min_stock' => 'required|numeric',
-            'stock' => 'required|numeric',
-            'measurement' => 'required|numeric',
-            'automatic_use' => 'required|numeric',
-            'image' => 'nullable|string',
-
-            'sub_category_id' => 'required|numeric|exists:sub_categories,id',
             'brand_id' => 'required|numeric|exists:brands,id',
-            'storage_id' => 'required|numeric|exists:storages,id',
+            'sub_category_id' => 'required|numeric|exists:sub_categories,id',
+            'min_stock' => 'required|numeric',
+            'automatic_use' => 'required|numeric',
+            'purchase_price' => Rule::requiredIf($request->product_type == 'raw'),
+            'selling_price' => Rule::requiredIf($request->product_type == 'finished'),
             'unit_id' => 'required|numeric|exists:units,id',
+            'measurement' => 'required|numeric',
             'metric_id' => 'required|numeric|exists:metrics,id',
+            'image' => 'nullable',
+            'storage_id' => 'required|numeric|exists:storages,id',
             'supplier_id' => 'required|numeric|exists:suppliers,id',
+            'product_type' => 'required|string|in:raw,finished',
         ]);
 
         if ($validator->fails()) {
@@ -205,20 +178,27 @@ class CategoryController extends Controller
             ], 422);
         }
 
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+
         $updateProduct = $product->update([
-            'sub_category_id' => $request->sub_category_id,
+            'product_name' => ucwords($request->product_name),
             'brand_id' => $request->brand_id,
-            'storage_id' => $request->storage_id,
+            'sub_category_id' => $request->sub_category_id,
             'min_stock' => $request->min_stock,
-            'stock' => $request->stock,
-            'unit' => $request->unit_id,
-            'measurement' => $request->measurement,
             'automatic_use' => $request->automatic_use,
+            'purchase_price' => $request->product_type == 'raw' ? $request->purchase_price : 0,
+            'selling_price' => $request->product_type == 'finished' ? $request->purchase_price : 0,
+            'unit_id' => $request->unit_id,
+            'measurement' => $request->measurement,
             'metric_id' => $request->metric_id,
+            'image' => $request->file('image') && $request->file('image')->isValid()
+                ? $request->file('image')->store('images', 'public')
+                : NULL,
+            'storage_id' => $request->storage_id,
             'supplier_id' => $request->supplier_id,
-            'purchase_price' => $request->purchase_price,
-            'image' => $request->image,
-            'is_active' => 1,
+            'product_type' => $request->product_type,
             'user_id' => auth()->user()->id,
         ]);
 
@@ -235,7 +215,7 @@ class CategoryController extends Controller
         ], 200);
     }
 
-    /**
+    /** 
      * Remove the specified resource from storage.
      */
     public function destroy(Product $product)
@@ -245,6 +225,9 @@ class CategoryController extends Controller
         if ($user->role->name != 'Admin') {
             $this->deactivate($product->id);
         } else {
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
 
             if (!$product->delete()) {
                 return response()->json([
@@ -252,11 +235,6 @@ class CategoryController extends Controller
                     'message' => 'Gagal menghapus data produk',
                 ], 400);
             }
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Berhasil menghapus data produk',
-            ], 200);
         }
 
         return response()->json([

@@ -24,7 +24,7 @@ return new class extends Migration
             $table->double('remaining_stock')->default(0);
             $table->string('reference_number');
             $table->string('category');
-            $table->enum('type', ['in', 'out']);
+            $table->enum('type', ['IN', 'OUT']);
             $table->string('product_history_reference');
 
             $table->foreignId('user_id');

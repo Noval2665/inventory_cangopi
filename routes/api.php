@@ -45,7 +45,6 @@ Route::group(['middleware' => 'authenticated'], function () {
         Route::get('me', [AuthController::class, 'me']);
     });
 
-
     // 👉 Master-data
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('sub-categories', SubCategoryController::class);

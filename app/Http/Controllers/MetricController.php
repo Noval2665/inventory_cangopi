@@ -22,7 +22,7 @@ class MetricController extends Controller
         $search = $request->search;
 
         $metrics = Metric::when($search, function ($query, $search) {
-            return $query->where('metric_type', 'LIKE', '%' . $search . '%');
+            return $query->where('metric_name', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
 
@@ -49,7 +49,7 @@ class MetricController extends Controller
         DB::beginTransaction();
 
         $validator = Validator::make($request->all(), [
-            'metric_type' => 'required|string',
+            'metric_name' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -61,7 +61,7 @@ class MetricController extends Controller
         }
 
         try {
-            $metric = Metric::where('metric_type', $request->metric_type)->withTrashed()->first();
+            $metric = Metric::where('metric_name', $request->metric_name)->withTrashed()->first();
 
             if ($metric) {
                 $updateMetric = Metric::where('id', $metric->id)->update([
@@ -75,7 +75,7 @@ class MetricController extends Controller
             } else {
 
                 $createMetric = Metric::create([
-                    'metric_type' => ucwords($request->metric_type),
+                    'metric_name' => ucwords($request->metric_name),
                     'user_id' => auth()->user()->id,
                 ]);
 
@@ -124,7 +124,7 @@ class MetricController extends Controller
     public function update(Request $request, Metric $metric)
     {
         $validator = Validator::make($request->all(), [
-            'metric_type' => 'required|string',
+            'metric_name' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -136,7 +136,7 @@ class MetricController extends Controller
         }
 
         $updateMetric = $metric->update([
-            'metric_type' => ucwords($request->metric_type),
+            'metric_name' => ucwords($request->metric_name),
             'user_id' => auth()->user()->id,
         ]);
 

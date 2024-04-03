@@ -22,13 +22,13 @@ class StorageController extends Controller
         $search = $request->search;
 
         $storages = Storage::with(['inventory'])->when($search, function ($query, $search) {
-            return $query->where('storage_type', 'LIKE', '%' . $search . '%');
+            return $query->where('storage_name', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Menampilkan data Penyimpanan',
+            'message' => 'Menampilkan data penyimpanan',
             'storages' => $storages,
         ], 200);
     }
@@ -46,10 +46,8 @@ class StorageController extends Controller
      */
     public function store(Request $request)
     {
-        DB::beginTransaction();
-
         $validator = Validator::make($request->all(), [
-            'storage_type' => 'required|string',
+            'storage_name' => 'required|string',
             'inventory_id' => 'required|numeric|exists:inventories,id',
         ]);
 
@@ -61,31 +59,17 @@ class StorageController extends Controller
             ], 422);
         }
 
+        DB::beginTransaction();
+
         try {
-            $storage = Storage::where('storage_type', $request->storage_type)
-                ->where('inventory_id', $request->inventory_id)->withTrashed()->first();
+            $createStorage = Storage::create([
+                'storage_name' => ucwords($request->storage_name),
+                'inventory_id' => $request->inventory_id,
+                'user_id' => auth()->user()->id,
+            ]);
 
-            if ($storage) {
-                $storage->restore();
-
-                $updateStorage = $storage->update([
-                    'is_active' => 1,
-                    'user_id' => auth()->user()->id,
-                ]);
-
-                if (!$updateStorage) {
-                    throw new HttpException(400, 'Gagal mengubah data penyimpanan');
-                }
-            } else {
-                $createStorage = Storage::create([
-                    'storage_type' => $request->storage_type,
-                    'inventory_id' => $request->inventory_id,
-                    'user_id' => auth()->user()->id,
-                ]);
-
-                if (!$createStorage) {
-                    throw new HttpException(400, 'Gagal menambahkan data penyimpanan');
-                }
+            if (!$createStorage) {
+                throw new HttpException(400, 'Gagal menambahkan data penyimpanan');
             }
 
             DB::commit();
@@ -126,7 +110,7 @@ class StorageController extends Controller
     public function update(Request $request, Storage $storage)
     {
         $validator = Validator::make($request->all(), [
-            'storage_type' => 'required|string',
+            'storage_name' => 'required|string',
             'inventory_id' => 'required|numeric|exists:inventories,id',
         ]);
 
@@ -139,7 +123,7 @@ class StorageController extends Controller
         }
 
         $updateStorage = $storage->update([
-            'storage_type' => $request->storage_type,
+            'storage_name' => $request->storage_name,
             'inventory_id' => $request->inventory_id,
             'user_id' => auth()->user()->id,
         ]);

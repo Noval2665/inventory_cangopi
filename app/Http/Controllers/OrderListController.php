@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class ProductController extends Controller
+class OrderListController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -30,7 +30,6 @@ class ProductController extends Controller
             'message' => 'Menampilkan data produk',
             'orderLists' => $orderLists,
         ], 200);
-        
     }
 
     /**
@@ -84,7 +83,6 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        
     }
 
     /**
@@ -142,16 +140,14 @@ class ProductController extends Controller
 
         if ($user->role->name != 'Admin') {
             $this->deactivate($orderList->id);
-        } 
-        
-        else{
-            if($orderList->orderLists()->exists()){
+        } else {
+            if ($orderList->orderLists()->exists()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Tidak dapat menghapus data produk yang memiliki order terkait'
                 ], 422);
             }
-            
+
             if (!$orderList->delete()) {
                 return response()->json([
                     'status' => 'error',
