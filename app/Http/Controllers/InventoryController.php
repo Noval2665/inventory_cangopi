@@ -22,7 +22,7 @@ class InventoryController extends Controller
         $search = $request->search;
 
         $inventories = Inventory::when($search, function ($query, $search) {
-            return $query->where('name', 'LIKE', '%' . $search . '%');
+            return $query->where('inventory_name', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
 
@@ -46,10 +46,8 @@ class InventoryController extends Controller
      */
     public function store(Request $request)
     {
-        DB::beginTransaction();
-
         $validator = Validator::make($request->all(), [
-            'inventory_type' => 'required|string',
+            'inventory_name' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -60,28 +58,16 @@ class InventoryController extends Controller
             ], 422);
         }
 
+        DB::beginTransaction();
+
         try {
-            $inventory = Inventory::where('inventory_type', $request->inventory_type)->withTrashed()->first();
+            $createInventory = Inventory::create([
+                'inventory_name' => ucwords($request->inventory_name),
+                'user_id' => auth()->user()->id,
+            ]);
 
-            if ($inventory) {
-                $updateInventory = Inventory::where('id', $inventory->id)->update([
-                    'is_active' => 1,
-                    'user_id' => auth()->user()->id,
-                ]);
-
-                if (!$updateInventory) {
-                    throw new HttpException(400, 'Gagal mengubah data gudang');
-                }
-            } else {
-
-                $createInventory = Inventory::create([
-                    'inventory_type' => ucwords($request->inventory_type),
-                    'user_id' => auth()->user()->id,
-                ]);
-
-                if (!$createInventory) {
-                    throw new HttpException(400, 'Gagal membuat data gudang');
-                }
+            if (!$createInventory) {
+                throw new HttpException(400, 'Gagal membuat data gudang');
             }
 
             DB::commit();
@@ -122,7 +108,7 @@ class InventoryController extends Controller
     public function update(Request $request, string $id)
     {
         $validator = Validator::make($request->all(), [
-            'inventory_type' => 'required|string',
+            'inventory_name' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -134,7 +120,7 @@ class InventoryController extends Controller
         }
 
         $updateInventory = Inventory::where('id', $id)->update([
-            'inventory_type' => $request->inventory_type,
+            'inventory_name' => $request->inventory_name,
             'user_id' => auth()->user()->id,
         ]);
 

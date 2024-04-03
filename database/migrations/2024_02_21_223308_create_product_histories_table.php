@@ -17,14 +17,14 @@ return new class extends Migration
             $table->double('quantity')->default(0);
             $table->double('purchase_price')->default(0);
             $table->double('selling_price')->default(0);
-            $table->enum('discount_type', ['amount', 'percentage'])->default(0);
+            $table->enum('discount_type', ['amount', 'percentage'])->default('amount');
             $table->double('discount_amount')->default(0);
             $table->double('discount_percentage')->default(0);
             $table->double('total')->default(0);
             $table->double('remaining_stock')->default(0);
             $table->string('reference_number');
             $table->string('category');
-            $table->enum('type', ['in', 'out']);
+            $table->enum('type', ['IN', 'OUT']);
             $table->string('product_history_reference');
 
             $table->foreignId('user_id');

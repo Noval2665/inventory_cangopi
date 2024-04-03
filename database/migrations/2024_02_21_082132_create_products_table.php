@@ -13,24 +13,24 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-
             $table->string('product_code');
             $table->string('product_name');
-            $table->double('purchase_price');
+            $table->foreignId('brand_id'); //udah
+            $table->foreignId('sub_category_id'); //udah(nicxon)
             $table->double('min_stock');
             $table->double('stock'); //in units
-            $table->double('measurement')->default(0); //in metric
-            $table->text('automatic_use')->default(0);
-            $table->string('image')->nullable();
-            $table->boolean('is_active')->default(true);
-
-            $table->foreignId('user_id'); //udah
-            $table->foreignId('sub_category_id'); //udah(nicxon)
-            $table->foreignId('storage_id'); //udah
-            $table->foreignId('brand_id'); //udah
+            $table->boolean('automatic_use')->default(0);
+            $table->double('purchase_price')->default(0);
+            $table->double('selling_price')->default(0);
             $table->foreignId('unit_id'); //udah
+            $table->double('measurement')->default(0); //in metric
             $table->foreignId('metric_id');
+            $table->text('image')->nullable();
+            $table->foreignId('storage_id'); //udah
             $table->foreignId('supplier_id');
+            $table->enum('product_type', ['raw', 'finished']);
+            $table->boolean('is_active')->default(true);
+            $table->foreignId('user_id');
 
             $table->timestamps();
             $table->softDeletes();

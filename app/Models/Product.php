@@ -12,21 +12,17 @@ class Product extends Model
 
     protected $guarded = [];
 
-    protected $dates = ['deactivated_at'];
-
     protected $casts = [
         'product_name' => 'string',
         'purchase_price' => 'double',
         'stock' => 'double',
         'measurement' => 'double',
-
         'sub_category_id' => 'integer',
         'storage_id' => 'integer',
         'brand_id' => 'integer',
         'unit_id' => 'integer',
         'metric_id' => 'integer',
         'supplier_id' => 'integer',
-
         'is_active' => 'boolean',
         'user_id' => 'integer',
     ];
@@ -40,7 +36,7 @@ class Product extends Model
         $latestProductCode = Product::whereYear('created_at', $year)->orderBy('id', 'DESC')->first();
 
         if ($latestProductCode) {
-            $lastCode = explode('-', $latestProductCode->tutor_code)[2];
+            $lastCode = explode('-', $latestProductCode->product_code)[2];
             $newCode = $lastCode + 1;
         } else {
             $newCode = 1;

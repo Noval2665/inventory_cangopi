@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('inventories', function (Blueprint $table) {
             $table->id();
-            $table->string('inventory_type');
+            $table->string('inventory_name');
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
 
