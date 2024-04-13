@@ -60,7 +60,7 @@ Route::group(['middleware' => 'authenticated'], function () {
     Route::apiResource('suppliers', SupplierController::class);
     Route::apiResource('recipes', RecipeController::class);
 
-    // 👉 Masterdata user
+    // 👉 Access control
     Route::apiResource('users', UserController::class);
     Route::apiResource('roles', RoleController::class);
 });
