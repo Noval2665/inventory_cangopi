@@ -46,12 +46,10 @@ class RecipeController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'selling_price' => 'required|numeric',
-            'portions' => 'required|string',
-            'measurement' => 'required|numeric',
-
-            'finished_product_id' => 'required|numeric|exists:finished_products,id',
-            'par_stock_id =>' => 'required|numeric|exists:par_stocks,id',
+            'finished_product_id' => 'required|numeric|exists:products,id',
+            'recipes' => 'required|array',
+            'recipes.*.product_id' => 'required|numeric|exists:products,id',
+            'recipes.*.measurement' => 'required|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -62,21 +60,36 @@ class RecipeController extends Controller
             ], 422);
         }
 
+        DB::beginTransaction();
+
+        try {
+
         $createRecipe = Recipe::create([
-            'selling_price' => $request->selling_price,
-            'portions' => $request->portions,
-            'measurement' => $request->measurement,
             'finished_product_id' => $request->finished_product_id,
-            'par_stock_id' => $request->par_stock_id,
             'user_id' => auth()->user()->id,
         ]);
 
         if (!$createRecipe) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Gagal membuat data resep',
-            ], 400);
+            throw new HttpException(400, 'Gagal membuat data resep');
         }
+
+        foreach ($request->recipes as $recipe) {
+            $createRecipeDetail = $createRecipe->details()->create([
+                'product_id' => $recipe['product_id'],
+                'measurement' => $recipe['measurement'],
+            ]);
+
+            if (!$createRecipeDetail) {
+                throw new HttpException(400, 'Gagal membuat data detail resep');
+            }
+        }
+    } catch (HttpException $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+        ], $e->getStatusCode());
     }
 
     /**

@@ -64,21 +64,24 @@ class DatabaseSeeder extends Seeder
             'username' => 'superadmin',
             'email' => 'superadmin@gmail.com',
             'password' => bcrypt('superadmin'),
-            'role_id' => $roleSuperAdmin->id
+            'role_id' => $roleSuperAdmin->id,
+            'is_active' => 1
         ]);
 
         $createAdmin = User::create([
             'username' => 'admin',
             'email' => 'admin@gmail.com',
             'password' => bcrypt('admin'),
-            'role_id' => $roleAdmin->id
+            'role_id' => $roleAdmin->id,
+            'is_active' => 1
         ]);
 
         $createUser = User::create([
             'username' => 'user',
             'email' => 'user@gmail.com',
             'password' => bcrypt('user'),
-            'role_id' => $roleUser->id
+            'role_id' => $roleUser->id,
+            'is_active' => 1
         ]);
 
         Brand::create([

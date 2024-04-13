@@ -10,7 +10,9 @@ use App\Http\Controllers\MetricController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\StorageController;
 use App\Http\Controllers\InventoryController;
-
+use App\Http\Controllers\RecipeController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -45,14 +47,20 @@ Route::group(['middleware' => 'authenticated'], function () {
         Route::get('me', [AuthController::class, 'me']);
     });
 
-    // 👉 Master-data
+    // 👉 Masterdata
+    Route::apiResource('inventories', InventoryController::class);
+    Route::apiResource('storages', StorageController::class);
+
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('sub-categories', SubCategoryController::class);
-    Route::apiResource('products', ProductController::class);
-    Route::apiResource('brands', BrandController::class);
-    Route::apiResource('suppliers', SupplierController::class);
-    Route::apiResource('metrics', MetricController::class);
     Route::apiResource('units', UnitController::class);
-    Route::apiResource('storages', StorageController::class);
-    Route::apiResource('inventories', InventoryController::class);
+    Route::apiResource('metrics', MetricController::class);
+    Route::apiResource('brands', BrandController::class);
+    Route::apiResource('products', ProductController::class);
+    Route::apiResource('suppliers', SupplierController::class);
+    Route::apiResource('recipes', RecipeController::class);
+
+    // 👉 Masterdata user
+    Route::apiResource('users', UserController::class);
+    Route::apiResource('roles', RoleController::class);
 });
