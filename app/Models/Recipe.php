@@ -22,13 +22,18 @@ class Recipe extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function finishedProduct()
+    public function product()
     {
-        return $this->belongsTo(FinishedProduct::class);
+        return $this->belongsTo(product::class);
     }
 
-    public function parStock()
+    public function details()
     {
-        return $this->belongsTo(ParStock::class);
+        return $this->hasMany(RecipeDetail::class);
     }
+
+    //     public function parStock()
+    //     {
+    //         return $this->belongsTo(ParStock::class);
+    //     }
 }

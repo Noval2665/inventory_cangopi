@@ -20,8 +20,15 @@ class RecipeController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        $recipes = Recipe::when($search, function ($query, $search) {
-            return $query->where('finished_product_name', 'LIKE', '%' . $search . '%');
+        $recipes = Recipe::with(['product'])->when($search, function ($query, $search) {
+            return $query->whereHas('product', function ($query) use ($search) {
+                $query
+                    ->where('product_type', 'finished')
+                    ->where(function ($query) use ($search) {
+                        $query->where('product_name', 'LIKE', '%' . $search . '%')
+                            ->orWhere('product_code', 'LIKE', '%' . $search . '%');
+                    });
+            });
         })
             ->paginate($per_page, ['*'], 'page', $page);
 
@@ -64,34 +71,34 @@ class RecipeController extends Controller
 
         try {
 
-        $createRecipe = Recipe::create([
-            'finished_product_id' => $request->finished_product_id,
-            'user_id' => auth()->user()->id,
-        ]);
-
-        if (!$createRecipe) {
-            throw new HttpException(400, 'Gagal membuat data resep');
-        }
-
-        foreach ($request->recipes as $recipe) {
-            $createRecipeDetail = $createRecipe->details()->create([
-                'product_id' => $recipe['product_id'],
-                'measurement' => $recipe['measurement'],
+            $createRecipe = Recipe::create([
+                'finished_product_id' => $request->finished_product_id,
+                'user_id' => auth()->user()->id,
             ]);
 
-            if (!$createRecipeDetail) {
-                throw new HttpException(400, 'Gagal membuat data detail resep');
+            if (!$createRecipe) {
+                throw new HttpException(400, 'Gagal membuat data resep');
             }
+
+            foreach ($request->recipes as $recipe) {
+                $createRecipeDetail = $createRecipe->details()->create([
+                    'product_id' => $recipe['product_id'],
+                    'measurement' => $recipe['measurement'],
+                ]);
+
+                if (!$createRecipeDetail) {
+                    throw new HttpException(400, 'Gagal membuat data detail resep');
+                }
+            }
+        } catch (HttpException $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
         }
-    } catch (HttpException $e) {
-        DB::rollBack();
-
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage(),
-        ], $e->getStatusCode());
     }
-
     /**
      * Display the specified resource.
      */
