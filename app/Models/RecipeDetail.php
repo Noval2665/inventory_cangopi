@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Recipe extends Model
+class RecipeDetail extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $guarded = [];
 
+    protected $guarded = [];
     protected $dates = ['deactivated_at'];
 
     protected $casts = [
@@ -23,18 +23,13 @@ class Recipe extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function finishedProduct()
+    public function recipe()
     {
-        return $this->belongsTo(product::class, 'finished_product_id', 'id');
+        return $this->belongsTo(Recipe::class);
     }
 
-    public function details()
+    public function product()
     {
-        return $this->hasMany(RecipeDetail::class);
+        return $this->belongsTo(Product::class);
     }
-
-    //     public function parStock()
-    //     {
-    //         return $this->belongsTo(ParStock::class);
-    //     }
 }

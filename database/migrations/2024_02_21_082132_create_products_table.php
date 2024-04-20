@@ -15,19 +15,19 @@ return new class extends Migration
             $table->id();
             $table->string('product_code');
             $table->string('product_name');
-            $table->foreignId('brand_id'); //udah
-            $table->foreignId('sub_category_id'); //udah(nicxon)
+            $table->foreignId('brand_id')->nullable(); //udah
+            $table->foreignId('sub_category_id')->nullable(); //udah(nicxon)
             $table->double('min_stock');
             $table->double('stock'); //in units
             $table->boolean('automatic_use')->default(0);
             $table->double('purchase_price')->default(0);
             $table->double('selling_price')->default(0);
-            $table->foreignId('unit_id'); //udah
+            $table->foreignId('unit_id')->nullable(); //udah
             $table->double('measurement')->default(0); //in metric
-            $table->foreignId('metric_id');
+            $table->foreignId('metric_id')->nullable();
             $table->text('image')->nullable();
-            $table->foreignId('storage_id'); //udah
-            $table->foreignId('supplier_id');
+            $table->foreignId('storage_id')->nullable(); //udah
+            $table->foreignId('supplier_id')->nullable();
             $table->enum('product_type', ['raw', 'finished']);
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
