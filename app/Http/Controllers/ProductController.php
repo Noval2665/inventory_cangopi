@@ -34,19 +34,28 @@ class ProductController extends Controller
         }
 
         $type = $request->type;
+        $supplierName = $request->supplier_name;
+        $inventory_id = $request->inventory_id;
 
         $products = Product::with([
-            'subCategory',
             'subCategory.category',
             'brand',
             'storage',
             'unit',
             'metric',
             'supplier',
+            'inventoryProductInfo' => function ($query) use ($inventory_id) {
+                $query->where('inventory_id', $inventory_id);
+            }
         ])
             ->when($search, function ($query, $search) {
                 return $query->where('product_name', 'LIKE', '%' . $search . '%')
                     ->orWhere('product_code', 'LIKE', '%' . $search . '%');
+            })
+            ->when($supplierName, function ($query, $supplierName) {
+                return $query->whereHas('supplier', function ($query) use ($supplierName) {
+                    $query->where('supplier_name', 'LIKE', '%' . $supplierName . '%');
+                });
             })
             ->when($type, function ($query, $type) {
                 return $query->where('product_type', $type);
@@ -101,12 +110,14 @@ class ProductController extends Controller
         DB::beginTransaction();
 
         try {
-            do {
-                $year = date('Y', strtotime(Carbon::now()));
-                $productCode = Product::generateProductCode($year);
-            } while (Product::where('product_code', $productCode)->exists());
-
-            echo $request->brand_id ?? "abcbcbc";
+            if (!$request->product_code) {
+                do {
+                    $year = date('Y', strtotime(Carbon::now()));
+                    $productCode = Product::generateProductCode($year);
+                } while (Product::where('product_code', $productCode)->exists());
+            } else {
+                $productCode = $request->product_code;
+            }
 
             $createProduct = Product::create([
                 'product_code' => $productCode,

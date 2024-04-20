@@ -75,4 +75,14 @@ class Product extends Model
     {
         return $this->hasMany(OrderList::class, "product_id", "id");
     }
+
+    public function inventoryProductInfo()
+    {
+        return $this->hasOne(ProductInfo::class, 'product_id');
+    }
+
+    public function productHistories()
+    {
+        return $this->hasMany(ProductHistory::class, 'product_id');
+    }
 }
