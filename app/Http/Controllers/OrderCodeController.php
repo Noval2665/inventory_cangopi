@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FinishedProduct;
+use App\Models\OrderCode;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class FinishedProductController extends Controller
+class OrderCodeController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -20,15 +20,15 @@ class FinishedProductController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        $finishedProducts = FinishedProduct::when($search, function ($query, $search) {
-            return $query->where('finished_product_name', 'LIKE', '%' . $search . '%');
+        $orderCodes = OrderCode::when($search, function ($query, $search) {
+            return $query->where('order_code', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
-
+        
         return response()->json([
             'status' => 'success',
-            'message' => 'Menampilkan data produk jadi',
-            'finishedProducts' => $finishedProducts,
+            'message' => 'Menampilkan data kode order',
+            'orderCodes' => $orderCodes,
         ], 200);
     }
 
@@ -46,7 +46,7 @@ class FinishedProductController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'category_name' => 'required|string',
+            'order_code' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -57,21 +57,27 @@ class FinishedProductController extends Controller
             ], 422);
         }
 
-        $createFinishedProduct = FinishedProduct::create([
-            'finished_product_name' => ucwords($request->finished_product_name),
+        $createOrderCode = OrderCode::create([
+            'order_code' => $request->order_code,
             'user_id' => auth()->user()->id,
         ]);
 
-        if (!$createFinishedProduct) {
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data kode order berhasil ditambahkan',
+            'orderCode' => $createOrderCode,
+        ], 201);
+
+        if (!$createOrderCode) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal membuat data produk jadi',
+                'message' => 'Gagal membuat data kode order',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil membuat data produk jadi',
+            'message' => 'Berhasil membuat data kode order',
         ], 201);
     }
 
@@ -94,10 +100,10 @@ class FinishedProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, FinishedProduct $finishedProduct)
+    public function update(Request $request, OrderCode $orderCode)
     {
         $validator = Validator::make($request->all(), [
-            'finished_product_name' => 'required|string',
+            'order_code' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -108,67 +114,69 @@ class FinishedProductController extends Controller
             ], 422);
         }
 
-        $updateFinishedProduct = $finishedProduct->update([
-            'finished_product_name' => ucwords($request->finished_product_name),
+        $updateOrderCode = $orderCode->update([
+            'order_code' => $request->order_code,
             'user_id' => auth()->user()->id,
         ]);
 
-        if (!$updateFinishedProduct) {
+        if (!$updateOrderCode) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal mengubah data produk jadi',
+                'message' => 'Gagal mengubah data kode order',
             ], 400);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Berhasil mengubah data produk jadi',
+            'message' => 'Berhasil mengubah data kode order',
         ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(FinishedProduct $finishedProduct)
+    public function destroy(OrderCode $orderCode)
     {
         $user = auth()->user();
 
-        if ($user->role->name != 'Admin') {
-            $this->deactivate($finishedProduct->id);
-        } else {
-            $finishedProduct = FinishedProduct::where('id', $finishedProduct->id)->firstOrFail();
-
-            if (!$finishedProduct->delete()) {
+        if($user->role->name != 'Admin') {
+            $this->deactivate($orderCode->id);
+        }
+        else{
+            if($orderCode->orderList()->exist()){
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Gagal menghapus data produk jadi',
+                    'message' => 'Gagal menghapus data kode order, karena kode order masih digunakan',
+                ], 400);
+            }
+            if (!$orderCode->delete()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gagal menghapus data kode order',
                 ], 400);
             }
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Berhasil menghapus data produk jadi',
+                'message' => 'Berhasil menghapus data kode order',
             ], 200);
         }
-
         return response()->json([
             'status' => 'success',
-            'message' => $user->role->name != 'Admin' ? 'Berhasil menonaktifkan data produk jadi' : 'Berhasil menghapus data produk jadi',
-        ], 200);
+            'message' => $user->role->name != 'Admin' ? 'Berhasil menonaktifkan data kode order' : 'Berhasil menghapus data kode order',
+        ], 400);
     }
 
-    public function deactivate($id)
-    {
-        $updateFinishedProduct = FinishedProduct::where('id', $id)->update([
+    public function deactivate($id){
+        $updateOrderCode = OrderCode::where('id', $id)->update([
             'is_active' => 0,
             'deactivated_at' => Carbon::now(),
         ]);
 
-        if (!$updateFinishedProduct) {
+        if (!$updateOrderCode) {
             return response()->json([
-
                 'status' => 'error',
-                'message' => 'Gagal menonaktifkan produk jadi',
+                'message' => 'Gagal menonaktifkan data kode order',
             ], 400);
         }
     }

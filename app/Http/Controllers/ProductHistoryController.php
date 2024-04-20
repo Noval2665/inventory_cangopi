@@ -21,7 +21,8 @@ class ProductHistoryController extends Controller
         $search = $request->search;
 
         $productHistories = ProductHistory::when($search, function ($query, $search) {
-            return $query->where('type', 'LIKE', '%' . $search . '%');
+            return $query->where('type', 'LIKE', '%' . $search . '%') or 
+                $query->where('product_name', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
 

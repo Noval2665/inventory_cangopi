@@ -266,7 +266,7 @@ class UserController extends Controller
             'password' => bcrypt($request->new_password)
         ]);
 
-        $checkToken->delete();
+        // $checkToken->delete();
 
         return response()->json([
             'status' => 'success',

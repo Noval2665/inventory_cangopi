@@ -16,7 +16,11 @@ class ProductController extends Controller
     public function checker($value)
     {
         if ($value == null) {
+            echo 'b';
             return NULL;
+        } else {
+            echo 'a';
+            return $value;
         }
     }
 
@@ -84,8 +88,7 @@ class ProductController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'product_name' => 'required|string',
-            'brand_id' => Rule::requiredIf($request->product_type == 'raw'),
-            'brand_id' => Rule::requiredIf($request->product_type == 'raw'),
+            'brand_id' => 'nullable',
             'min_stock' => Rule::requiredIf($request->product_type == 'raw'),
             'automatic_use' => Rule::requiredIf($request->product_type == 'raw'),
             'purchase_price' => Rule::requiredIf($request->product_type == 'raw'),
@@ -184,7 +187,7 @@ class ProductController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'product_name' => 'required|string',
-            'brand_id' => 'required|numeric|exists:brands,id',
+            'brand_id' => 'nullable',
             'sub_category_id' => 'required|numeric|exists:sub_categories,id',
             'min_stock' => 'required|numeric',
             'automatic_use' => 'required|numeric',
@@ -213,7 +216,7 @@ class ProductController extends Controller
 
         $updateProduct = $product->update([
             'product_name' => ucwords($request->product_name),
-            'brand_id' => $request->brand_id,
+            'brand_id' => $this->checker($request->brand_id),
             'sub_category_id' => $request->sub_category_id,
             'min_stock' => $request->min_stock,
             'automatic_use' => $request->automatic_use,

@@ -20,8 +20,9 @@ class OrderListController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        $orderLists = OrderList::when($search, function ($query, $search) {
-            return $query->where('product_name', 'LIKE', '%' . $search . '%');
+        $orderLists = OrderList::when($search, function ($query, $search, $date) {
+            return $query->where('product_name', 'LIKE', '%' . $search . '%')
+                or $query->where('order_date', '==', $date);
         })
             ->paginate($per_page, ['*'], 'page', $page);
 
@@ -145,9 +146,12 @@ class OrderListController extends Controller
     public function update(Request $request, OrderList $orderList)
     {
         $validator = Validator::make($request->all(), [
-            'product_id' => 'required|string',
+            'order_date' => 'required|date', // Menambahkan validasi 'order_date'
             'quantity' => 'required|numeric',
             'description' => 'required|string',
+            'user_id' => auth()->user()->id,
+            'product_id' => 'required|string',
+            'order_code_id' => 'required|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -158,10 +162,12 @@ class OrderListController extends Controller
         }
 
         $updateOrderList = $orderList->update([
-            'product_id' => $request->product_id,
+            'order_date' => $request->order_date ? date('Y-m-d', strtotime($request->order_date)) : null, // Menambahkan 'order_date' dengan nilai 'Carbon::now()
             'quantity' => $request->quantity,
             'description' => $request->description,
+            'product_id' => $request->product_id,
             'user_id' => auth()->user()->id,
+            'order_code_id' => $request->order_code_id,
         ]);
 
         if (!$updateOrderList) {

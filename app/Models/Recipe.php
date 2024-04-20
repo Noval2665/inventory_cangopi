@@ -15,6 +15,7 @@ class Recipe extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'user_id' => 'integer',
     ];
 
     public function user()
@@ -24,11 +25,16 @@ class Recipe extends Model
 
     public function finishedProduct()
     {
-        return $this->belongsTo(FinishedProduct::class);
+        return $this->belongsTo(product::class, 'finished_product_id', 'id');
     }
 
-    public function parStock()
+    public function details()
     {
-        return $this->belongsTo(ParStock::class);
+        return $this->hasMany(RecipeDetail::class);
     }
+
+    //     public function parStock()
+    //     {
+    //         return $this->belongsTo(ParStock::class);
+    //     }
 }

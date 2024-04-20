@@ -52,4 +52,9 @@ class OrderList extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function orderCode()
+    {
+        return $this->belongsTo(OrderCode::class);
+    }
 }
