@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Exception;
 
 class RecipeController extends Controller
 {
@@ -20,14 +21,13 @@ class RecipeController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        $recipes = Recipe::with(['product'])->when($search, function ($query, $search) {
-            return $query->whereHas('product', function ($query) use ($search) {
-                $query
-                    ->where('product_type', 'finished')
-                    ->where(function ($query) use ($search) {
-                        $query->where('product_name', 'LIKE', '%' . $search . '%')
-                            ->orWhere('product_code', 'LIKE', '%' . $search . '%');
-                    });
+        $recipes = Recipe::with(['finishedProduct'])->when($search, function ($query, $search) {
+            return $query->whereHas('finishedProduct', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->orWhere('product_code', 'LIKE', '%' . $search . '%')
+                        ->where('product_name', 'LIKE', '%' . $search . '%');
+                })
+                    ->where('product_type', 'finished');
             });
         })
             ->paginate($per_page, ['*'], 'page', $page);
@@ -90,6 +90,13 @@ class RecipeController extends Controller
                     throw new HttpException(400, 'Gagal membuat data detail resep');
                 }
             }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil membuat data resep',
+            ], 201);
         } catch (HttpException $e) {
             DB::rollBack();
 
@@ -121,12 +128,10 @@ class RecipeController extends Controller
     public function update(Request $request, Recipe $recipe)
     {
         $validator = Validator::make($request->all(), [
-            'selling_price' => 'required|numeric',
-            'portions' => 'required|string',
-            'measurement' => 'required|numeric',
-
-            'finished_product_id' => 'required|numeric|exists:finished_products,id',
-            'par_stock_id' => 'required|numeric|exists:par_stocks,id',
+            'finished_product_id' => 'required|numeric|exists:products,id',
+            'recipes' => 'required|array',
+            'recipes.*.product_id' => 'required|numeric|exists:products,id',
+            'recipes.*.measurement' => 'required|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -137,26 +142,57 @@ class RecipeController extends Controller
             ], 422);
         }
 
-        $updateRecipe = $recipe->update([
-            'selling_price' => $request->selling_price,
-            'portions' => $request->portions,
-            'measurement' => $request->measurement,
-            'finished_product_id' => $request->finished_product_id,
-            'par_stock_id' => $request->par_stock_id,
-            'user_id' => auth()->user()->id,
-        ]);
+        DB::beginTransaction();
 
-        if (!$updateRecipe) {
+        try {
+            $updateRecipe = $recipe->update([
+                'selling_price' => $request->selling_price,
+                'portions' => $request->portions,
+                'measurement' => $request->measurement,
+                'finished_product_id' => $request->finished_product_id,
+                'par_stock_id' => $request->par_stock_id,
+                'user_id' => auth()->user()->id,
+            ]);
+
+            if (!$updateRecipe) {
+                throw new HttpException(400, 'Gagal mengupdate data resep');
+            }
+
+            $tempRecipeDetails = $recipe->details()->get();
+
+            if (!$tempRecipeDetails) {
+                throw new HttpException(400, 'Gagal mengambil data detail resep');
+            }
+
+            if (!$recipe->details()->forceDelete()) {
+                throw new HttpException(400, 'Gagal menghapus data detail resep');
+            }
+
+            foreach ($request->recipes as $recipe) {
+                $createRecipeDetail = $recipe->details()->create([
+                    'product_id' => $recipe['product_id'],
+                    'measurement' => $recipe['measurement'],
+                ]);
+
+                if (!$createRecipeDetail) {
+                    throw new HttpException(400, 'Gagal membuat data detail resep');
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil mengupdate data resep',
+            ], 200);
+        } catch (HttpException $e) {
+            DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal mengupdate data resep',
-            ], 400);
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Berhasil mengupdate data resep',
-        ], 200);
     }
 
     /**
@@ -170,26 +206,26 @@ class RecipeController extends Controller
             $this->deactivate($recipe->id);
         } else {
 
-            if (!$recipe->finishedProduct->delete()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Gagal menghapus data produk',
-                ], 400);
-            }
+            // if (!$recipe->finishedProduct->delete()) {
+            //     return response()->json([
+            //         'status' => 'error',
+            //         'message' => 'Gagal menghapus data produk',
+            //     ], 400);
+            // }
 
-            if (!$recipe->parStock->delete()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Gagal menghapus data stok',
-                ], 400);
-            }
+            // if (!$recipe->parStock->delete()) {
+            //     return response()->json([
+            //         'status' => 'error',
+            //         'message' => 'Gagal menghapus data stok',
+            //     ], 400);
+            // }
 
-            if (!$recipe->finishedProduct->delete()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Gagal menghapus data produk',
-                ], 400);
-            }
+            // if (!$recipe->finishedProduct->delete()) {
+            //     return response()->json([
+            //         'status' => 'error',
+            //         'message' => 'Gagal menghapus data produk',
+            //     ], 400);
+            // }
 
             if (!$recipe->delete()) {
                 return response()->json([
