@@ -13,25 +13,25 @@ return new class extends Migration
     {
         Schema::create('order_lists', function (Blueprint $table) {
             $table->id();
-
-            $table->string('order_code');
-
-            $table->date('order_date');
-            $table->double('quantity')->default(0);
-            $table->double('total_price')->default(0);
+            $table->string('order_list_number', 50);
+            $table->date('date');
+            $table->double('total');
+            $table->enum('discount_type', ['amount', 'percentage'])->default('amount');
+            $table->double('discount_amount')->default(0);
+            $table->double('discount_percentage')->default(0);
+            $table->double('grandtotal');
+            $table->foreignId('description_id')->nullable();
+            $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
-
+            $table->enum('status', ['pending', 'waiting', 'approved', 'rejected'])->default('pending');
             $table->foreignId('user_id');
-            $table->foreignId('product_id');
-            $table->foreignId('description_id');
 
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('restrict')->onUpdate('cascade');
-            $table->foreign('description_id')->references('id')->on('descriptions')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('description_id')->references('id')->on('descriptions')->onUpdate('cascade')->onDelete('restrict');
+            $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('restrict');
         });
     }
 

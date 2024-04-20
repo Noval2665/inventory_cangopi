@@ -21,8 +21,8 @@ class OrderListController extends Controller
         $search = $request->search;
 
         $orderLists = OrderList::when($search, function ($query, $search, $date) {
-            return $query->where('product_name', 'LIKE', '%' . $search . '%') 
-            or $query->where('order_date', '==', $date);
+            return $query->where('product_name', 'LIKE', '%' . $search . '%')
+                or $query->where('order_date', '==', $date);
         })
             ->paginate($per_page, ['*'], 'page', $page);
 
@@ -47,40 +47,82 @@ class OrderListController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'product_id' => 'required|string|exists:products,id',
-            'order_code_id' => 'required|numeric|exists:order_codes,id',
-            'quantity' => 'required|numeric',
-            'description' => 'required|string',
-            'order_date' =>'required|date', // Menambahkan validasi 'order_date'
+            'date' => ['required', 'date'],
+            'inventory_id' => ['required', 'numeric', 'exists:inventories,id'],
+            'order_list_items' => ['required', 'array'],
+            'order_list_items.*.product_id' => ['required', 'numeric', 'exists:products,id'],
+            'order_list_items.*.quantity' => ['required', 'numeric'],
+            'order_list_items.*.discount_type' => ['required', 'string'],
+            'order_list_items.*.discount_amount' => ['nullable', 'numeric'],
+            'order_list_items.*.discount_percentage' => ['nullable'],
+            'order_list_items.*.description' => ['nullable', 'string'],
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
-                'message' => $validator->errors(),
+                'error' => $validator->errors(),
+                'message' => $validator->errors()->first(),
             ], 400);
         }
 
-        $createOrderList = OrderList::create([
-            'order_date' => $request->order_date ? date('Y-m-d', strtotime($request->order_date)) : null, // Menambahkan 'order_date' dengan nilai 'Carbon::now()
-            'quantity' => $request->quantity,
-            'description' => $request->description,
-            'user_id' => auth()->user()->id,
-            'product_id' => $request->product_id,
-            'order_code_id' => $request->order_code_id,
-        ]);
+        DB::beginTransaction();
 
-        if (!$createOrderList) {
+        try {
+            do {
+                $year = date('Y', strtotime($request->date));
+                $orderListNumber = OrderList::generateOrderListNumber($year);
+            } while (OrderList::where('order_list_number', $orderListNumber)->exists());
+
+            $createOrderList = OrderList::create([
+                'order_list_number' => $orderListNumber,
+                'date' => $request->date,
+                'total' => $request->total,
+                'discount_type' => $request->discount_type ?? 'amount',
+                'discount_amount' => $request->discount_amount ?? 0,
+                'discount_percentage' => $request->discount_percentage ?? 0,
+                'grandtotal' => $request->grandtotal,
+                'description_id' => $request->description_id ?? null,
+                'description' => $request->description,
+                'user_id' => auth()->user()->id,
+            ]);
+
+            if (!$createOrderList) {
+                throw new HttpException(400, 'Gagal menambahkan data order list');
+            }
+
+            foreach ($request->order_list_items as $orderListItem) {
+                $createOrderListItem = $createOrderList->details()->create([
+                    'product_id' => $orderListItem['product_id'],
+                    'quantity' => $orderListItem['quantity'],
+                    'purchase_price' => $orderListItem['purchase_price'],
+                    'total' => $orderListItem['total'],
+                    'discount_type' => $orderListItem['discount_type'] ?? 'amount',
+                    'discount_amount' => $orderListItem['discount_amount'] ?? 0,
+                    'discount_percentage' => $orderListItem['discount_percentage'] ?? 0,
+                    'grandtotal' => $orderListItem['grandtotal'],
+                    'inventory_id' => $request->inventory_id,
+                ]);
+
+                if (!$createOrderListItem) {
+                    throw new HttpException(400, 'Gagal menambahkan data detail order list');
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil menambahkan data order list',
+            ], 201);
+        } catch (HttpException $e) {
+            DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menambahkan produk',
-            ], 400);
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Berhasil menambahkan produk',
-        ], 200);
     }
 
     /**

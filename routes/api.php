@@ -10,6 +10,7 @@ use App\Http\Controllers\MetricController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\StorageController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\OrderListController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
@@ -59,6 +60,9 @@ Route::group(['middleware' => 'authenticated'], function () {
     Route::apiResource('products', ProductController::class);
     Route::apiResource('suppliers', SupplierController::class);
     Route::apiResource('recipes', RecipeController::class);
+
+    // 👉 Transaction
+    Route::apiResource('order-lists', OrderListController::class);
 
     // 👉 Access control
     Route::apiResource('users', UserController::class);

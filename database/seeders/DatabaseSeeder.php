@@ -8,6 +8,9 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Inventory;
 use App\Models\Metric;
+use App\Models\Product;
+use App\Models\ProductIn;
+use App\Models\ProductInfo;
 use App\Models\Role;
 use App\Models\Storage;
 use App\Models\SubCategory;
@@ -181,6 +184,109 @@ class DatabaseSeeder extends Seeder
         Supplier::create([
             'supplier_name' => 'PT. Indofood Indonesia',
             'user_id' => $createAdmin->id
+        ]);
+
+        // $table->string('product_code');
+        // $table->string('product_name');
+        // $table->foreignId('brand_id')->nullable(); //udah
+        // $table->foreignId('sub_category_id')->nullable(); //udah(nicxon)
+        // $table->double('min_stock');
+        // $table->double('stock'); //in units
+        // $table->boolean('automatic_use')->default(0);
+        // $table->double('purchase_price')->default(0);
+        // $table->double('selling_price')->default(0);
+        // $table->foreignId('unit_id')->nullable(); //udah
+        // $table->double('measurement')->default(0); //in metric
+        // $table->foreignId('metric_id')->nullable();
+        // $table->text('image')->nullable();
+        // $table->foreignId('storage_id')->nullable(); //udah
+        // $table->foreignId('supplier_id')->nullable();
+        // $table->enum('product_type', ['raw', 'finished']);
+        // $table->boolean('is_active')->default(true);
+        // $table->foreignId('user_id');
+
+        Product::create([
+            'product_code' => 'PRD-2024-0001',
+            'product_name' => 'Bear Brand',
+            'brand_id' => 1,
+            'sub_category_id' => 1,
+            'min_stock' => 10,
+            'stock' => 0,
+            'automatic_use' => 0,
+            'purchase_price' => 10000,
+            'selling_price' => 0,
+            'unit_id' => 1,
+            'measurement' => 1000,
+            'metric_id' => 1,
+            'image' => null,
+            'storage_id' => 1,
+            'supplier_id' => 1,
+            'product_type' => 'raw',
+            'user_id' => $createSuperAdmin->id
+        ]);
+
+        Product::create([
+            'product_code' => 'PRD-2024-0002',
+            'product_name' => 'Bawang Putih',
+            'brand_id' => 2,
+            'sub_category_id' => 2,
+            'min_stock' => 10,
+            'stock' => 0,
+            'automatic_use' => 0,
+            'purchase_price' => 5000,
+            'selling_price' => 0,
+            'unit_id' => 2,
+            'measurement' => 10,
+            'metric_id' => 2,
+            'image' => null,
+            'storage_id' => 2,
+            'supplier_id' => 2,
+            'product_type' => 'raw',
+            'user_id' => $createAdmin->id
+        ]);
+
+        Product::create([
+            'product_code' => 'PRD-2024-0003',
+            'product_name' => 'Nasi Goreng',
+            'brand_id' => 3,
+            'sub_category_id' => 2,
+            'min_stock' => 10,
+            'stock' => 0,
+            'automatic_use' => 0,
+            'purchase_price' => 2000,
+            'selling_price' => 0,
+            'unit_id' => 3,
+            'measurement' => 1,
+            'metric_id' => 3,
+            'image' => null,
+            'storage_id' => 2,
+            'supplier_id' => 2,
+            'product_type' => 'finished',
+            'user_id' => $createUser->id
+        ]);
+
+        ProductInfo::create([
+            'product_id' => 1,
+            'total_stock' => 10,
+            'total_stock_out' => 0,
+            'inventory_id' => 1,
+            'user_id' => 1,
+        ]);
+
+        ProductInfo::create([
+            'product_id' => 2,
+            'total_stock' => 10,
+            'total_stock_out' => 0,
+            'inventory_id' => 1,
+            'user_id' => 2,
+        ]);
+
+        ProductInfo::create([
+            'product_id' => 3,
+            'total_stock' => 10,
+            'total_stock_out' => 0,
+            'inventory_id' => 2,
+            'user_id' => 3,
         ]);
     }
 }

@@ -11,29 +11,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_histories', function (Blueprint $table) {
+        Schema::create('order_list_details', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('order_list_id');
             $table->foreignId('product_id');
-            $table->date('date');
-            $table->double('quantity')->default(0);
-            $table->double('purchase_price')->default(0);
-            $table->double('selling_price')->default(0);
-            $table->double('total')->default(0);
+            $table->double('quantity');
+            $table->double('received_quantity')->default(0);
+            $table->double('purchase_price');
+            $table->double('total');
             $table->enum('discount_type', ['amount', 'percentage'])->default('amount');
             $table->double('discount_amount')->default(0);
             $table->double('discount_percentage')->default(0);
-            $table->double('grandtotal')->default(0);
-            $table->double('remaining_stock')->default(0);
-            $table->string('reference_number');
-            $table->string('category');
-            $table->enum('type', ['IN', 'OUT']);
-            $table->string('product_history_reference');
+            $table->double('grandtotal');
             $table->foreignId('inventory_id');
+            $table->text('note')->nullable();
+            $table->enum('status', ['pending', 'ordered', 'incomplete', 'complete'])->default('pending');
 
             $table->timestamps();
             $table->softDeletes();
-            $table->timestamp('deactivated_at')->nullable();
 
+            $table->foreign('order_list_id')->references('id')->on('order_lists')->onUpdate('cascade')->onDelete('restrict');
             $table->foreign('product_id')->references('id')->on('products')->onUpdate('cascade')->onDelete('restrict');
             $table->foreign('inventory_id')->references('id')->on('inventories')->onUpdate('cascade')->onDelete('restrict');
         });
@@ -44,6 +41,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('product_histories');
+        Schema::dropIfExists('order_list_details');
     }
 };
