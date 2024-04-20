@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Exception;
 
 class RecipeController extends Controller
 {
@@ -21,7 +20,7 @@ class RecipeController extends Controller
         $per_page = $request->per_page ?? 10000;
         $search = $request->search;
 
-        $recipes = Recipe::with(['finishedProduct'])->when($search, function ($query, $search) {
+        $recipes = Recipe::with(['finishedProduct', 'details'])->when($search, function ($query, $search) {
             return $query->whereHas('finishedProduct', function ($query) use ($search) {
                 $query->where(function ($query) use ($search) {
                     $query->orWhere('product_code', 'LIKE', '%' . $search . '%')
@@ -31,6 +30,7 @@ class RecipeController extends Controller
             });
         })
             ->paginate($per_page, ['*'], 'page', $page);
+
 
         return response()->json([
             'status' => 'success',
@@ -145,12 +145,9 @@ class RecipeController extends Controller
         DB::beginTransaction();
 
         try {
+
             $updateRecipe = $recipe->update([
-                'selling_price' => $request->selling_price,
-                'portions' => $request->portions,
-                'measurement' => $request->measurement,
                 'finished_product_id' => $request->finished_product_id,
-                'par_stock_id' => $request->par_stock_id,
                 'user_id' => auth()->user()->id,
             ]);
 
@@ -158,20 +155,14 @@ class RecipeController extends Controller
                 throw new HttpException(400, 'Gagal mengupdate data resep');
             }
 
-            $tempRecipeDetails = $recipe->details()->get();
-
-            if (!$tempRecipeDetails) {
-                throw new HttpException(400, 'Gagal mengambil data detail resep');
-            }
-
             if (!$recipe->details()->forceDelete()) {
                 throw new HttpException(400, 'Gagal menghapus data detail resep');
             }
 
-            foreach ($request->recipes as $recipe) {
+            foreach ($request->recipes as $item) {
                 $createRecipeDetail = $recipe->details()->create([
-                    'product_id' => $recipe['product_id'],
-                    'measurement' => $recipe['measurement'],
+                    'product_id' => $item['product_id'],
+                    'measurement' => $item['measurement'],
                 ]);
 
                 if (!$createRecipeDetail) {
