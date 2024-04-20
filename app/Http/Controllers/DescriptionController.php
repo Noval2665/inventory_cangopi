@@ -12,7 +12,7 @@ use Carbon\Carbon;
 use App\Models\Description;
 use Symfony\Component\Console\Descriptor\Descriptor;
 
-class DesriptionController extends Controller
+class DescriptionController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -140,19 +140,6 @@ class DesriptionController extends Controller
         if ($user->role->name != 'Admin') {
             $this->deactivate($description->id);
         } else {
-            if ($description->PurchaseOrderDetails()->exists()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Tidak dapat menghapus data deskripsi yang memiliki Purchase Order terkait'
-                ], 422);
-            }
-            if ($description->PurchaseDetails()->exists()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Tidak dapat menghapus data deskripsi yang memiliki Purchase terkait'
-                ], 422);
-            }
-
             if (!$description->delete()) {
                 return response()->json([
                     'status' => 'error',

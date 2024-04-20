@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SubCategoryController;
+use App\Http\Controllers\DescriptionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\SupplierController;
@@ -54,6 +55,7 @@ Route::group(['middleware' => 'authenticated'], function () {
 
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('sub-categories', SubCategoryController::class);
+    Route::apiResource('descriptions', DescriptionController::class);
     Route::apiResource('units', UnitController::class);
     Route::apiResource('metrics', MetricController::class);
     Route::apiResource('brands', BrandController::class);
