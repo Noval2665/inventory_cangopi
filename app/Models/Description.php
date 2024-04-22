@@ -17,13 +17,8 @@ class Description extends Model
         'user_id' => 'integer',
     ];
 
-    public function PurchaseOrderDetails()
+    public function user()
     {
-        return $this->hasMany(PurchaseOrderDetail::class, "description_id", "id");
-    }
-
-    public function PurchaseDetails()
-    {
-        return $this->hasMany(PurchaseDetail::class, "description_id", "id");
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 }
