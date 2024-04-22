@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('supplier_name');
             $table->string('phone_number')->nullable();
+            $table->string('address')->nullable();
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
 
