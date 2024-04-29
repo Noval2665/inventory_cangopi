@@ -160,7 +160,7 @@ class UnitController extends Controller
         if ($userLogin->role->name != 'Admin') {
             $this->deactivate($unit->id);
         } else {
-            if ($unit->products->exists()) {
+            if ($unit->products()->exists()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Tidak dapat menghapus data satuan yang memiliki produk terkait'

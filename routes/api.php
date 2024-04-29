@@ -11,6 +11,7 @@ use App\Http\Controllers\MetricController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\StorageController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\MarketListController;
 use App\Http\Controllers\OrderListController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\RoleController;
@@ -65,6 +66,7 @@ Route::group(['middleware' => 'authenticated'], function () {
 
     // 👉 Transaction
     Route::apiResource('order-lists', OrderListController::class);
+    Route::apiResource('market-lists', MarketListController::class);
 
     // 👉 Access control
     Route::apiResource('users', UserController::class);

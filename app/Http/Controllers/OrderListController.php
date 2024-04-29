@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MarketList;
 use App\Models\OrderList;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -17,19 +18,26 @@ class OrderListController extends Controller
     public function index(Request $request)
     {
         $page = $request->page;
-        $per_page = $request->per_page ?? 10000;
+        $per_page = $request->per_page;
         $search = $request->search;
 
-        $orderLists = OrderList::when($search, function ($query, $search, $date) {
-            return $query->where('product_name', 'LIKE', '%' . $search . '%')
-                or $query->where('order_date', '==', $date);
-        })
+        $orderLists = OrderList::with([
+            'inventory',
+            'details.product.subCategory.category',
+            'details.product.unit',
+            'details.product.metric',
+            'details.description',
+        ])
+            ->when($search, function ($query, $search, $date) {
+                return $query->where('product_name', 'LIKE', '%' . $search . '%')
+                    or $query->where('order_date', '==', $date);
+            })
             ->paginate($per_page, ['*'], 'page', $page);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Menampilkan data produk',
-            'orderLists' => $orderLists,
+            'order_lists' => $orderLists,
         ], 200);
     }
 
@@ -55,7 +63,7 @@ class OrderListController extends Controller
             'order_list_items.*.discount_type' => ['required', 'string'],
             'order_list_items.*.discount_amount' => ['nullable', 'numeric'],
             'order_list_items.*.discount_percentage' => ['nullable'],
-            'order_list_items.*.description' => ['nullable', 'string'],
+            'order_list_items.*.description_id' => ['required', 'numeric', 'exists:descriptions,id'],
         ]);
 
         if ($validator->fails()) {
@@ -82,8 +90,8 @@ class OrderListController extends Controller
                 'discount_amount' => $request->discount_amount ?? 0,
                 'discount_percentage' => $request->discount_percentage ?? 0,
                 'grandtotal' => $request->grandtotal,
-                'description_id' => $request->description_id ?? null,
                 'description' => $request->description,
+                'inventory_id' => $request->inventory_id,
                 'user_id' => auth()->user()->id,
             ]);
 
@@ -101,11 +109,31 @@ class OrderListController extends Controller
                     'discount_amount' => $orderListItem['discount_amount'] ?? 0,
                     'discount_percentage' => $orderListItem['discount_percentage'] ?? 0,
                     'grandtotal' => $orderListItem['grandtotal'],
+                    'description_id' => $orderListItem['description_id'],
                     'inventory_id' => $request->inventory_id,
                 ]);
 
                 if (!$createOrderListItem) {
                     throw new HttpException(400, 'Gagal menambahkan data detail order list');
+                }
+            }
+
+            if ($request->type === 'process') {
+                do {
+                    $year = date('Y', strtotime($request->date));
+                    $marketListNumber = MarketList::generateMarketListNumber($year);
+                } while (MarketList::where('market_list_number', $marketListNumber)->exists());
+
+                $createMarketList = MarketList::create([
+                    'market_list_number' => $marketListNumber,
+                    'date' => $request->date,
+                    'order_list_id' => $createOrderList->id,
+                    'status' => 'Waiting',
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$createMarketList) {
+                    throw new HttpException(400, 'Gagal menambahkan data market list');
                 }
             }
 
@@ -146,41 +174,105 @@ class OrderListController extends Controller
     public function update(Request $request, OrderList $orderList)
     {
         $validator = Validator::make($request->all(), [
-            'order_date' => 'required|date', // Menambahkan validasi 'order_date'
-            'quantity' => 'required|numeric',
-            'description' => 'required|string',
-            'user_id' => auth()->user()->id,
-            'product_id' => 'required|string',
-            'order_code_id' => 'required|numeric',
+            'date' => ['required', 'date'],
+            'inventory_id' => ['required', 'numeric', 'exists:inventories,id'],
+            'order_list_items' => ['required', 'array'],
+            'order_list_items.*.product_id' => ['required', 'numeric', 'exists:products,id'],
+            'order_list_items.*.quantity' => ['required', 'numeric'],
+            'order_list_items.*.discount_type' => ['required', 'string'],
+            'order_list_items.*.discount_amount' => ['nullable', 'numeric'],
+            'order_list_items.*.discount_percentage' => ['nullable'],
+            'order_list_items.*.description' => ['nullable', 'string'],
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
-                'message' => $validator->errors(),
+                'error' => $validator->errors(),
+                'message' => $validator->errors()->first(),
             ], 400);
         }
 
-        $updateOrderList = $orderList->update([
-            'order_date' => $request->order_date ? date('Y-m-d', strtotime($request->order_date)) : null, // Menambahkan 'order_date' dengan nilai 'Carbon::now()
-            'quantity' => $request->quantity,
-            'description' => $request->description,
-            'product_id' => $request->product_id,
-            'user_id' => auth()->user()->id,
-            'order_code_id' => $request->order_code_id,
-        ]);
+        DB::beginTransaction();
 
-        if (!$updateOrderList) {
+        try {
+            $updateOrderList = $orderList->update([
+                'date' => $request->date,
+                'total' => $request->total,
+                'discount_type' => $request->discount_type ?? 'amount',
+                'discount_amount' => $request->discount_amount ?? 0,
+                'discount_percentage' => $request->discount_percentage ?? 0,
+                'grandtotal' => $request->grandtotal,
+                'description' => $request->description,
+                'inventory_id' => $request->inventory_id,
+                'user_id' => auth()->user()->id,
+            ]);
+
+            if (!$updateOrderList) {
+                throw new HttpException(400, 'Gagal mengubah data order list');
+            }
+
+            if (!$orderList->details()->forceDelete()) {
+                throw new HttpException(400, 'Gagal menghapus data detail order list');
+            }
+
+            foreach ($request->order_list_items as $item) {
+                $createOrderListDetail = $orderList->details()->create([
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'purchase_price' => $item['purchase_price'],
+                    'total' => $item['total'],
+                    'discount_type' => $item['discount_type'] ?? 'amount',
+                    'discount_amount' => $item['discount_amount'] ?? 0,
+                    'discount_percentage' => $item['discount_percentage'] ?? 0,
+                    'grandtotal' => $item['grandtotal'],
+                    'inventory_id' => $request->inventory_id,
+                    'description_id' => $item['description_id'],
+                    'status' => ($orderList->status == 'pending') ? 'pending' : (($item['quantity'] < $item['received_quantity']) ? 'incomplete' : 'complete'),
+                ]);
+
+                if (!$createOrderListDetail) {
+                    throw new HttpException(400, 'Gagal menambahkan data detail order list');
+                }
+            }
+
+            $checkMarketList = MarketList::where('order_list_id', $orderList->id)->first();
+
+            if ($request->type === 'process') {
+                if (!$checkMarketList) {
+                    do {
+                        $year = date('Y', strtotime($request->date));
+                        $marketListNumber = MarketList::generateMarketListNumber($year);
+                    } while (MarketList::where('market_list_number', $marketListNumber)->exists());
+
+                    $createMarketList = MarketList::create([
+                        'market_list_number' => $marketListNumber,
+                        'date' => $request->date,
+                        'order_list_id' => $orderList->id,
+                        'status' => 'Waiting',
+                        'user_id' => auth()->user()->id,
+                    ]);
+
+                    if (!$createMarketList) {
+                        throw new HttpException(400, 'Gagal menambahkan data market list');
+                    }
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Berhasil mengubah data order list',
+            ]);
+        } catch (HttpException $e) {
+            DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal mengubah data produk',
-            ], 400);
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Berhasil mengubah data produk',
-        ], 200);
     }
 
     /**

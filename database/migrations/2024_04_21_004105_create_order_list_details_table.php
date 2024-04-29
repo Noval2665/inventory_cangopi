@@ -23,9 +23,10 @@ return new class extends Migration
             $table->double('discount_amount')->default(0);
             $table->double('discount_percentage')->default(0);
             $table->double('grandtotal');
+            $table->foreignId('description_id');
             $table->foreignId('inventory_id');
             $table->text('note')->nullable();
-            $table->enum('status', ['pending', 'ordered', 'incomplete', 'complete'])->default('pending');
+            $table->enum('status', ['Pending', 'Ordered', 'Incomplete', 'Complete'])->default('Pending');
 
             $table->timestamps();
             $table->softDeletes();
@@ -33,6 +34,7 @@ return new class extends Migration
             $table->foreign('order_list_id')->references('id')->on('order_lists')->onUpdate('cascade')->onDelete('restrict');
             $table->foreign('product_id')->references('id')->on('products')->onUpdate('cascade')->onDelete('restrict');
             $table->foreign('inventory_id')->references('id')->on('inventories')->onUpdate('cascade')->onDelete('restrict');
+            $table->foreign('description_id')->references('id')->on('descriptions')->onUpdate('cascade')->onDelete('restrict');
         });
     }
 

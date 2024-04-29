@@ -17,18 +17,28 @@ class MarketListController extends Controller
     public function index(Request $request)
     {
         $page = $request->page;
-        $per_page = $request->per_page ?? 10000;
+        $per_page = $request->per_page;
         $search = $request->search;
 
-        $marketLists = MarketList::when($search, function ($query, $search) {
-            return $query->where('market_list_name', 'LIKE', '%' . $search . '%');
-        })
+        if ($search) {
+            $page = 1;
+        }
+
+        $marketLists = MarketList::with([
+            'orderList',
+        ])
+            ->when($search, function ($query, $search) {
+                return $query->where('market_list_number', 'LIKE', '%' . $search . '%')
+                    ->orWhereHas('orderList', function ($query) use ($search) {
+                        $query->where('order_list_number', 'LIKE', '%' . $search . '%');
+                    });
+            })
             ->paginate($per_page, ['*'], 'page', $page);
-        
+
         return response()->json([
             'status' => 'success',
             'message' => 'Menampilkan data market list',
-            'market_list' => $marketLists
+            'market_lists' => $marketLists
         ], 200);
     }
 
@@ -46,9 +56,9 @@ class MarketListController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'market_list_name' => 'required|string',
-            'status' => 'required|string|in:Pending, Approve, Cancel, Waiting',
-            'date' => 'required|date',
+            'date' => ['required', 'date'],
+            'order_list_id' => ['required', 'numeric', 'exists:order_lists,id'],
+            'note' => ['nullable', 'string'],
         ]);
 
         if ($validator->fails()) {
@@ -143,9 +153,8 @@ class MarketListController extends Controller
 
         if ($user->role->name != 'Admin') {
             $this->deactivate($marketList->id);
-        } 
-        else {
-            if($marketList->orderList()->exists()) {
+        } else {
+            if ($marketList->orderList()->exists()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Tidak dapat menghapus data market list yang memiliki order list terkait'
@@ -158,7 +167,7 @@ class MarketListController extends Controller
                     'message' => 'Gagal menghapus data market list',
                 ], 400);
             }
-    
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Berhasil menghapus data market list',
@@ -171,13 +180,14 @@ class MarketListController extends Controller
         ]);
     }
 
-    public function deactivate($id) {
+    public function deactivate($id)
+    {
         $updateMarketList = MarketList::where('id', $id)->update([
             'is_active' => 0,
             'deactivated_at' => Carbon::now(),
         ]);
 
-        if(!$updateMarketList){
+        if (!$updateMarketList) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagal menonaktifkan market list',

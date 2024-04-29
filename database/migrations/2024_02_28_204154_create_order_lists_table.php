@@ -20,17 +20,17 @@ return new class extends Migration
             $table->double('discount_amount')->default(0);
             $table->double('discount_percentage')->default(0);
             $table->double('grandtotal');
-            $table->foreignId('description_id')->nullable();
             $table->text('description')->nullable();
+            $table->foreignId('inventory_id');
             $table->boolean('is_active')->default(true);
-            $table->enum('status', ['pending', 'waiting', 'approved', 'rejected'])->default('pending');
+            $table->enum('status', ['Pending', 'Waiting', 'Approved', 'Rejected'])->default('Pending');
             $table->foreignId('user_id');
 
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
-            $table->foreign('description_id')->references('id')->on('descriptions')->onUpdate('cascade')->onDelete('restrict');
+            $table->foreign('inventory_id')->references('id')->on('inventories')->onUpdate('cascade')->onDelete('restrict');
             $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('restrict');
         });
     }

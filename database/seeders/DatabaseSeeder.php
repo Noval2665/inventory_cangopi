@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Description;
 use App\Models\Inventory;
 use App\Models\Metric;
 use App\Models\Product;
@@ -34,7 +35,7 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $roleSuperAdmin = Role::create([
-            'name' => 'Super Admin',
+            'name' => 'Superadmin',
             'permissions' => [
                 [
                     "action" => "manage",
@@ -45,6 +46,16 @@ class DatabaseSeeder extends Seeder
 
         $roleAdmin = Role::create([
             'name' => 'Admin',
+            'permissions' => [
+                [
+                    "action" => "manage",
+                    "subject" => "all"
+                ]
+            ]
+        ]);
+
+        $roleFinance = Role::create([
+            'name' => 'Finance',
             'permissions' => [
                 [
                     "action" => "manage",
@@ -204,6 +215,11 @@ class DatabaseSeeder extends Seeder
         // $table->enum('product_type', ['raw', 'finished']);
         // $table->boolean('is_active')->default(true);
         // $table->foreignId('user_id');
+
+        Description::create([
+            'description_name' => 'RECEIVING PURCHASE',
+            'user_id' => $createSuperAdmin->id
+        ]);
 
         Product::create([
             'product_code' => 'PRD-2024-0001',

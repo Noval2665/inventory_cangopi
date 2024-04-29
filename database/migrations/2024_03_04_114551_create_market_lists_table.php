@@ -13,23 +13,23 @@ return new class extends Migration
     {
         Schema::create('market_lists', function (Blueprint $table) {
             $table->id();
-            $table->string('market_list_code');
-            $table->string('market_list_name');
-            $table->enum('status', ['Pending', 'Approve', 'Cancel', 'Waiting'])->default('Pending');
+            $table->string('market_list_number', 20);
             $table->date('date');
-            $table->text('explanation')->nullable(); //exclusive finance
-            $table->string('receipt_image')->nullable(); //exclusive finance
+            $table->foreignId('order_list_id');
+            $table->boolean('paid')->default(false);
+            $table->text('evidence of transfer')->nullable();
+            $table->text('receipt_image')->nullable();
+            $table->text('note')->nullable();
+            $table->enum('status', ['Pending', 'Waiting', 'Approve', 'Cancel'])->default('Pending');
+            $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
-            $table->foreignId('order_list_id'); #ambil tanggal juga dari ini
-
-            //receipt image itu foto struk pas di approve dan diturunin dana finance
 
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
             $table->foreign('order_list_id')->references('id')->on('order_lists')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 

@@ -38,6 +38,16 @@ class OrderList extends Model
         return $prefix . '-' . $newNumber;
     }
 
+    public function marketList()
+    {
+        return $this->hasOne(MarketList::class);
+    }
+
+    public function inventory()
+    {
+        return $this->belongsTo(Inventory::class);
+    }
+
     public function details()
     {
         return $this->hasMany(OrderListDetail::class);
