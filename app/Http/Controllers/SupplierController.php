@@ -52,6 +52,7 @@ class SupplierController extends Controller
         $validator = Validator::make($request->all(), [
             'supplier_name' => 'required|string',
             'phone_number' => 'required|numeric',
+            'address' => 'nullable|string',
 
         ]);
 
@@ -70,6 +71,7 @@ class SupplierController extends Controller
 
                 $updateSupplier = $supplier->update([
                     'phone_number' => $request->phone_number,
+                    'address' => $request->address,
                     'is_active' => 1,
                     'user_id' => auth()->user()->id,
                 ]);
@@ -81,6 +83,7 @@ class SupplierController extends Controller
                 $createSupplier = Supplier::create([
                     'supplier_name' => ucwords($request->supplier_name),
                     'phone_number' => $request->phone_number,
+                    'address' => $request->address,
                     'user_id' => auth()->user()->id,
                 ]);
 
@@ -129,6 +132,7 @@ class SupplierController extends Controller
         $validator = Validator::make($request->all(), [
             'supplier_name' => 'required|string',
             'phone_number' => 'required|numeric',
+            'address' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -140,8 +144,9 @@ class SupplierController extends Controller
         }
 
         $updateSupplier = $supplier->update([
-            'supplier_name' => ucwords($request->name),
+            'supplier_name' => ucwords($request->supplier_name),
             'phone_number' => $request->phone_number,
+            'address' => $request->address,
             'user_id' => auth()->user()->id,
         ]);
 
