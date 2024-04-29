@@ -85,4 +85,9 @@ class Product extends Model
     {
         return $this->hasMany(ProductHistory::class, 'product_id');
     }
+
+    public function recipeDetails()
+    {
+        return $this->hasMany(RecipeDetail::class, 'product_id');
+    }
 }
