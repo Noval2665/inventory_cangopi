@@ -10,6 +10,7 @@ use App\Models\Description;
 use App\Models\Inventory;
 use App\Models\Metric;
 use App\Models\Product;
+use App\Models\ProductHistory;
 use App\Models\ProductIn;
 use App\Models\ProductInfo;
 use App\Models\Role;
@@ -19,6 +20,7 @@ use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Symfony\Component\Console\Descriptor\Descriptor;
 
 class DatabaseSeeder extends Seeder
 {
@@ -216,18 +218,13 @@ class DatabaseSeeder extends Seeder
         // $table->boolean('is_active')->default(true);
         // $table->foreignId('user_id');
 
-        Description::create([
-            'description_name' => 'RECEIVING PURCHASE',
-            'user_id' => $createSuperAdmin->id
-        ]);
-
         Product::create([
             'product_code' => 'PRD-2024-0001',
             'product_name' => 'Bear Brand',
             'brand_id' => 1,
             'sub_category_id' => 1,
-            'min_stock' => 10,
-            'stock' => 0,
+            'min_stock' => 100,
+            'stock' => 100,
             'automatic_use' => 0,
             'purchase_price' => 10000,
             'selling_price' => 0,
@@ -246,8 +243,8 @@ class DatabaseSeeder extends Seeder
             'product_name' => 'Bawang Putih',
             'brand_id' => 2,
             'sub_category_id' => 2,
-            'min_stock' => 10,
-            'stock' => 0,
+            'min_stock' => 50,
+            'stock' => 50,
             'automatic_use' => 0,
             'purchase_price' => 5000,
             'selling_price' => 0,
@@ -267,7 +264,7 @@ class DatabaseSeeder extends Seeder
             'brand_id' => 3,
             'sub_category_id' => 2,
             'min_stock' => 10,
-            'stock' => 0,
+            'stock' => 10,
             'automatic_use' => 0,
             'purchase_price' => 2000,
             'selling_price' => 0,
@@ -283,7 +280,7 @@ class DatabaseSeeder extends Seeder
 
         ProductInfo::create([
             'product_id' => 1,
-            'total_stock' => 10,
+            'total_stock' => 100,
             'total_stock_out' => 0,
             'inventory_id' => 1,
             'user_id' => 1,
@@ -291,7 +288,7 @@ class DatabaseSeeder extends Seeder
 
         ProductInfo::create([
             'product_id' => 2,
-            'total_stock' => 10,
+            'total_stock' => 50,
             'total_stock_out' => 0,
             'inventory_id' => 1,
             'user_id' => 2,
@@ -303,6 +300,90 @@ class DatabaseSeeder extends Seeder
             'total_stock_out' => 0,
             'inventory_id' => 2,
             'user_id' => 3,
+        ]);
+
+        ProductHistory::create([
+            'product_id' => 1,
+            'date' => now(),
+            'quantity' => 100,
+            'purchase_price' => 10000,
+            'selling_price' => 0,
+            'total' => 10000,
+            'discount_type' => 'percentage',
+            'discount_amount' => 0,
+            'discount_percentage' => 0,
+            'grandtotal' => 1000000,
+            'remaining_stock' => 100,
+            'reference_number' => 'PRD-2024-0001',
+            'category' => 'initial-stock',
+            'type' => 'IN',
+            'inventory_id' => 1,
+        ]);
+
+        ProductHistory::create([
+            'product_id' => 2,
+            'date' => now(),
+            'quantity' => 50,
+            'purchase_price' => 5000,
+            'selling_price' => 0,
+            'total' => 5000,
+            'discount_type' => 'percentage',
+            'discount_amount' => 0,
+            'discount_percentage' => 0,
+            'grandtotal' => 250000,
+            'remaining_stock' => 50,
+            'reference_number' => 'PRD-2024-0002',
+            'category' => 'initial-stock',
+            'type' => 'IN',
+            'inventory_id' => 1,
+        ]);
+
+        ProductHistory::create([
+            'product_id' => 3,
+            'date' => now(),
+            'quantity' => 10,
+            'purchase_price' => 2000,
+            'selling_price' => 0,
+            'total' => 2000,
+            'discount_type' => 'percentage',
+            'discount_amount' => 0,
+            'discount_percentage' => 0,
+            'grandtotal' => 20000,
+            'remaining_stock' => 10,
+            'reference_number' => 'PRD-2024-0003',
+            'category' => 'initial-stock',
+            'type' => 'IN',
+            'inventory_id' => 2,
+        ]);
+
+        Description::create([
+            'description_name' => 'RECEIVING PURCHASE',
+            'user_id' => 1
+        ]);
+
+        Description::create([
+            'description_name' => 'MK PRODUCTION - PIP',
+            'user_id' => 1
+        ]);
+
+        Description::create([
+            'description_name' => 'PAR STOCK ADJUSTMENT',
+            'user_id' => 1
+        ]);
+
+        Description::create([
+            'description_name' => 'EMERGENCY PURCHASE',
+            'user_id' => 1
+        ]);
+
+        Description::create([
+            'description_name' => 'MK RETURNED',
+            'user_id' => 1
+        ]);
+
+        Description::create([
+            'description_name' => 'MK PRODUCTION - CATERING',
+            'user_id' => 1
         ]);
     }
 }

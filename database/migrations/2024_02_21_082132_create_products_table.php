@@ -28,7 +28,7 @@ return new class extends Migration
             $table->text('image')->nullable();
             $table->foreignId('storage_id')->nullable(); //udah
             $table->foreignId('supplier_id')->nullable();
-            $table->enum('product_type', ['raw', 'finished']);
+            $table->enum('product_type', ['raw', 'semi-finished', 'finished']);
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
 

@@ -13,17 +13,6 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class ProductController extends Controller
 {
-    public function checker($value)
-    {
-        if ($value == null) {
-            echo 'b';
-            return NULL;
-        } else {
-            echo 'a';
-            return $value;
-        }
-    }
-
     /**
      * Display a listing of the resource.
      */
@@ -62,7 +51,7 @@ class ProductController extends Controller
                 });
             })
             ->when($type, function ($query, $type) {
-                return $query->where('product_type', $type);
+                return $query->whereIn('product_type', $type);
             })
             ->paginate($per_page, ['*'], 'page', $page);
 
@@ -88,7 +77,8 @@ class ProductController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'product_name' => 'required|string',
-            'brand_id' => 'nullable',
+            'brand_id' => Rule::requiredIf($request->product_type == 'raw'),
+            'sub_category_id' => Rule::requiredIf($request->product_type == 'raw'),
             'min_stock' => Rule::requiredIf($request->product_type == 'raw'),
             'automatic_use' => Rule::requiredIf($request->product_type == 'raw'),
             'purchase_price' => Rule::requiredIf($request->product_type == 'raw'),
@@ -99,7 +89,7 @@ class ProductController extends Controller
             'image' => 'nullable',
             'storage_id' => Rule::requiredIf($request->product_type == 'raw'),
             'supplier_id' => Rule::requiredIf($request->product_type == 'raw'),
-            'product_type' => 'required|string|in:raw,finished',
+            'product_type' => 'required|string|in:raw,semi-finished,finished',
         ]);
 
         if ($validator->fails()) {
@@ -125,21 +115,21 @@ class ProductController extends Controller
             $createProduct = Product::create([
                 'product_code' => $productCode,
                 'product_name' => ucwords($request->product_name),
-                'brand_id' => $this->checker($request->brand_id),
-                'sub_category_id' => $this->checker($request->sub_category_id),
+                'brand_id' => $request->brand_id,
+                'sub_category_id' => $request->sub_category_id ?? NULL,
                 'min_stock' => $request->min_stock,
                 'stock' => 0,
                 'automatic_use' => $request->automatic_use ?? 0,
                 'purchase_price' => $request->product_type == 'raw' ? $request->purchase_price : 0,
                 'selling_price' => $request->product_type == 'finished' ? $request->purchase_price : 0,
-                'unit_id' => $this->checker($request->unit_id),
+                'unit_id' => $request->unit_id,
                 'measurement' => $request->measurement ?? 0,
-                'metric_id' => $this->checker($request->metric_id),
+                'metric_id' => $request->metric_id,
                 'image' => $request->file('image')
                     ? $request->file('image')->store('images', 'public')
                     : null,
-                'storage_id' => $this->checker($request->storage_id),
-                'supplier_id' => $this->checker($request->supplier_id),
+                'storage_id' => $request->storage_id,
+                'supplier_id' => $request->supplier_id,
                 'product_type' => $request->product_type,
                 'user_id' => auth()->user()->id,
             ]);

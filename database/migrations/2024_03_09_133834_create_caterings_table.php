@@ -13,19 +13,23 @@ return new class extends Migration
     {
         Schema::create('caterings', function (Blueprint $table) {
             $table->id();
-            $table->string('catering_code');
-            $table->string('catering_name');
-            $table->enum('status', ['Pending', 'Approve', 'Cancel', 'Waiting'])->default('Pending');
+            $table->string('catering_number', 20);
             $table->date('date');
-            $table->foreignId('user_id');
             $table->foreignId('order_list_id');
+            $table->boolean('is_paid')->default(false);
+            $table->text('evidence_of_transfer')->nullable();
+            $table->text('receipt_image')->nullable();
+            $table->text('note')->nullable();
+            $table->enum('status', ['Waiting', 'Processed', 'Rejected', 'Done', 'Cancel'])->default('Waiting');
+            $table->boolean('is_active')->default(true);
+            $table->foreignId('user_id');
 
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('deactivated_at')->nullable();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
             $table->foreign('order_list_id')->references('id')->on('order_lists')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
         });
     }
 

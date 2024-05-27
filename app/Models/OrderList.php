@@ -43,6 +43,11 @@ class OrderList extends Model
         return $this->hasOne(MarketList::class);
     }
 
+    public function productHistories()
+    {
+        return $this->hasMany(ProductHistory::class, 'reference_number', 'order_list_number');
+    }
+
     public function inventory()
     {
         return $this->belongsTo(Inventory::class);
@@ -61,6 +66,11 @@ class OrderList extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function description()
+    {
+        return $this->hasOne(OrderListDescription::class);
     }
 
     public function orderCode()

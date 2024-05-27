@@ -24,14 +24,26 @@ class MarketListController extends Controller
             $page = 1;
         }
 
+        $status = $request->status;
+
         $marketLists = MarketList::with([
             'orderList',
+            'orderList.inventory',
+            'orderList.details',
+            'orderList.details.product',
+            'orderList.details.product.subCategory.category',
+            'orderList.details.product.unit',
+            'orderList.details.product.metric',
+            'orderList.details.description',
         ])
             ->when($search, function ($query, $search) {
                 return $query->where('market_list_number', 'LIKE', '%' . $search . '%')
                     ->orWhereHas('orderList', function ($query) use ($search) {
                         $query->where('order_list_number', 'LIKE', '%' . $search . '%');
                     });
+            })
+            ->when($status, function ($query, $status) {
+                return $query->where('status', $status);
             })
             ->paginate($per_page, ['*'], 'page', $page);
 
@@ -111,9 +123,8 @@ class MarketListController extends Controller
     public function update(Request $request, MarketList $marketList)
     {
         $validator = Validator::make($request->all(), [
-            'market_list_name' => 'required|string',
-            'status' => 'required|string|in:Pending, Approve, Cancel, Waiting',
-            'date' => 'required|date',
+            'status' => 'required|string|in:Waiting,Approved,Rejected,Canceled',
+            'evidence_of_transfer' => 'nullable|image|mimes:jpeg,png,jpg,pdf|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -125,9 +136,10 @@ class MarketListController extends Controller
         }
 
         $updateMarketList = $marketList->update([
-            'market_list_name' => ucwords($request->market_list_name),
             'status' => $request->status,
-            'date' => $request->date,
+            'evidence_of_transfer' => $request->file('evidence_of_transfer')
+                ? $request->file('evidence_of_transfer')->store('images', 'public')
+                : $marketList->evidence_of_transfer,
             'user_id' => auth()->user()->id,
         ]);
 

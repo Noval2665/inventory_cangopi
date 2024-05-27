@@ -21,7 +21,7 @@ class ProductHistoryController extends Controller
         $search = $request->search;
 
         $productHistories = ProductHistory::when($search, function ($query, $search) {
-            return $query->where('type', 'LIKE', '%' . $search . '%') or 
+            return $query->where('type', 'LIKE', '%' . $search . '%') or
                 $query->where('product_name', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
@@ -60,10 +60,9 @@ class ProductHistoryController extends Controller
             'category' => 'required|string',
             'type' => 'required|string|in:in,out',
             'product_history_reference' => 'required|string',
-
             'user_id' => 'required|integer|exists:users,id',
             'product_id' => 'required|integer|exists:products,id',
-        ]); 
+        ]);
 
         if ($validator->fails()) {
             return response([
@@ -223,7 +222,7 @@ class ProductHistoryController extends Controller
             'is_active' => 0,
             'deactivated_at' => Carbon::now(),
         ]);
-        
+
         if (!$updateProductHistory) {
             return response()->json([
                 'status' => 'error',

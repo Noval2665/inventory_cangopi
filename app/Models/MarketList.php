@@ -18,7 +18,7 @@ class MarketList extends Model
 
     static public function generateMarketListNumber(string $year)
     {
-        $firstPrefix = 'ORD';
+        $firstPrefix = 'ML';
         $secondPrefix = $year;
         $prefix = $firstPrefix . '-' . $secondPrefix;
 
@@ -35,7 +35,6 @@ class MarketList extends Model
 
         return $prefix . '-' . $newNumber;
     }
-
 
     public function user()
     {

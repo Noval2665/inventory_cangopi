@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Catering;
 use App\Models\MarketList;
 use App\Models\OrderList;
 use Carbon\Carbon;
@@ -21,22 +22,38 @@ class OrderListController extends Controller
         $per_page = $request->per_page;
         $search = $request->search;
 
+        $type = $request->type;
+        $status = $request->type;
+
         $orderLists = OrderList::with([
             'inventory',
+            'details',
             'details.product.subCategory.category',
             'details.product.unit',
             'details.product.metric',
             'details.description',
+            'productHistories',
         ])
             ->when($search, function ($query, $search, $date) {
                 return $query->where('product_name', 'LIKE', '%' . $search . '%')
                     or $query->where('order_date', '==', $date);
             })
+            ->when($status, function ($query, $status) use ($type) {
+                if ($type == "order-list-return") {
+                    return $query->whereHas('details', function ($query) use ($status) {
+                        $query->where('received_quantity', '>', 0);
+                    });
+                }
+
+                return $query->where('status', $status);
+
+                return $query->where('status', $status);
+            })
             ->paginate($per_page, ['*'], 'page', $page);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Menampilkan data produk',
+            'message' => 'Menampilkan data order list',
             'order_lists' => $orderLists,
         ], 200);
     }
@@ -60,6 +77,7 @@ class OrderListController extends Controller
             'order_list_items' => ['required', 'array'],
             'order_list_items.*.product_id' => ['required', 'numeric', 'exists:products,id'],
             'order_list_items.*.quantity' => ['required', 'numeric'],
+            'order_list_items.*.purchase_price' => ['required', 'numeric'],
             'order_list_items.*.discount_type' => ['required', 'string'],
             'order_list_items.*.discount_amount' => ['nullable', 'numeric'],
             'order_list_items.*.discount_percentage' => ['nullable'],
@@ -103,7 +121,7 @@ class OrderListController extends Controller
                 $createOrderListItem = $createOrderList->details()->create([
                     'product_id' => $orderListItem['product_id'],
                     'quantity' => $orderListItem['quantity'],
-                    'purchase_price' => $orderListItem['purchase_price'],
+                    'price' => $orderListItem['purchase_price'],
                     'total' => $orderListItem['total'],
                     'discount_type' => $orderListItem['discount_type'] ?? 'amount',
                     'discount_amount' => $orderListItem['discount_amount'] ?? 0,
@@ -119,21 +137,50 @@ class OrderListController extends Controller
             }
 
             if ($request->type === 'process') {
-                do {
-                    $year = date('Y', strtotime($request->date));
-                    $marketListNumber = MarketList::generateMarketListNumber($year);
-                } while (MarketList::where('market_list_number', $marketListNumber)->exists());
+                $checkHasMarketList = array_filter($request->order_list_items, function ($orderListItem) {
+                    return $orderListItem['description_id'] == 1;
+                });
 
-                $createMarketList = MarketList::create([
-                    'market_list_number' => $marketListNumber,
-                    'date' => $request->date,
-                    'order_list_id' => $createOrderList->id,
-                    'status' => 'Waiting',
-                    'user_id' => auth()->user()->id,
-                ]);
+                if ($checkHasMarketList) {
+                    do {
+                        $year = date('Y', strtotime($request->date));
+                        $marketListNumber = MarketList::generateMarketListNumber($year);
+                    } while (MarketList::where('market_list_number', $marketListNumber)->exists());
 
-                if (!$createMarketList) {
-                    throw new HttpException(400, 'Gagal menambahkan data market list');
+                    $createMarketList = MarketList::create([
+                        'market_list_number' => $marketListNumber,
+                        'date' => $request->date,
+                        'order_list_id' => $createOrderList->id,
+                        'status' => 'Waiting',
+                        'user_id' => auth()->user()->id,
+                    ]);
+
+                    if (!$createMarketList) {
+                        throw new HttpException(400, 'Gagal menambahkan data market list');
+                    }
+                }
+
+                $checkHasCatering = array_filter($request->order_list_items, function ($orderListItem) {
+                    return $orderListItem['description_id'] == 6;
+                });
+
+                if ($checkHasCatering) {
+                    do {
+                        $year = date('Y', strtotime($request->date));
+                        $cateringNumber = Catering::generateCateringNumber($year);
+                    } while (Catering::where('catering_number', $cateringNumber)->exists());
+
+                    $createCatering = Catering::create([
+                        'catering_number' => $cateringNumber,
+                        'date' => $request->date,
+                        'order_list_id' => $createOrderList->id,
+                        'status' => 'Waiting',
+                        'user_id' => auth()->user()->id,
+                    ]);
+
+                    if (!$createCatering) {
+                        throw new HttpException(400, 'Gagal menambahkan data catering');
+                    }
                 }
             }
 

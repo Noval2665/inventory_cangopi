@@ -11,29 +11,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_histories', function (Blueprint $table) {
+        Schema::create('stock_expenditure_details', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('stock_expenditure_id');
             $table->foreignId('product_id');
-            $table->date('date');
-            $table->double('quantity')->default(0);
-            $table->double('purchase_price')->default(0);
-            $table->double('selling_price')->default(0);
-            $table->double('total')->default(0);
+            $table->double('quantity');
+            $table->double('selling_price');
+            $table->double('total');
             $table->enum('discount_type', ['amount', 'percentage'])->default('amount');
             $table->double('discount_amount')->default(0);
             $table->string('discount_percentage')->default(0);
-            $table->double('grandtotal')->default(0);
-            $table->double('remaining_stock')->default(0);
-            $table->string('reference_number');
-            $table->string('category');
-            $table->enum('type', ['IN', 'OUT']);
-            $table->integer('product_history_reference')->nullable();
+            $table->double('grandtotal');
+            $table->text('note')->nullable();
             $table->foreignId('inventory_id');
 
             $table->timestamps();
             $table->softDeletes();
-            $table->timestamp('deactivated_at')->nullable();
 
+            $table->foreign('stock_expenditure_id')->references('id')->on('stock_expenditures')->onUpdate('cascade')->onDelete('restrict');
             $table->foreign('product_id')->references('id')->on('products')->onUpdate('cascade')->onDelete('restrict');
             $table->foreign('inventory_id')->references('id')->on('inventories')->onUpdate('cascade')->onDelete('restrict');
         });
@@ -44,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('product_histories');
+        Schema::dropIfExists('stock_expenditure_details');
     }
 };

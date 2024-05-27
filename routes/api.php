@@ -6,6 +6,7 @@ use App\Http\Controllers\SubCategoryController;
 use App\Http\Controllers\DescriptionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CateringController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\MetricController;
 use App\Http\Controllers\UnitController;
@@ -13,8 +14,12 @@ use App\Http\Controllers\StorageController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\MarketListController;
 use App\Http\Controllers\OrderListController;
+use App\Http\Controllers\ParStockController;
+use App\Http\Controllers\PurchaseReceptionController;
 use App\Http\Controllers\RecipeController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\StockExpenditureController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -67,6 +72,19 @@ Route::group(['middleware' => 'authenticated'], function () {
     // 👉 Transaction
     Route::apiResource('order-lists', OrderListController::class);
     Route::apiResource('market-lists', MarketListController::class);
+    Route::apiResource('purchase-receptions', PurchaseReceptionController::class);
+
+    Route::apiResource('caterings', CateringController::class);
+    Route::apiResource('stock-expenditures', StockExpenditureController::class);
+
+    Route::apiResource('par-stocks', ParStockController::class);
+
+    // 👉 Report
+    Route::group(['prefix' => 'report'], function () {
+        Route::get('order-lists', [ReportController::class, 'orderLists']);
+        Route::get('market-lists', [ReportController::class, 'marketLists']);
+        Route::get('purchase-receptions', [ReportController::class, 'purchaseReceptions']);
+    });
 
     // 👉 Access control
     Route::apiResource('users', UserController::class);

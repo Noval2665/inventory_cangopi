@@ -16,11 +16,11 @@ return new class extends Migration
             $table->string('market_list_number', 20);
             $table->date('date');
             $table->foreignId('order_list_id');
-            $table->boolean('paid')->default(false);
-            $table->text('evidence of transfer')->nullable();
+            $table->boolean('is_paid')->default(false);
+            $table->text('evidence_of_transfer')->nullable();
             $table->text('receipt_image')->nullable();
             $table->text('note')->nullable();
-            $table->enum('status', ['Pending', 'Waiting', 'Approve', 'Cancel'])->default('Pending');
+            $table->enum('status', ['Waiting', 'Approved', 'Rejected', 'Canceled'])->default('Waiting');
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
 

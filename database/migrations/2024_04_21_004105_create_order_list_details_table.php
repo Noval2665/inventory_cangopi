@@ -17,16 +17,16 @@ return new class extends Migration
             $table->foreignId('product_id');
             $table->double('quantity');
             $table->double('received_quantity')->default(0);
-            $table->double('purchase_price');
+            $table->double('price')->comment('Harga beli / jual');
             $table->double('total');
             $table->enum('discount_type', ['amount', 'percentage'])->default('amount');
             $table->double('discount_amount')->default(0);
-            $table->double('discount_percentage')->default(0);
+            $table->string('discount_percentage')->default(0);
             $table->double('grandtotal');
             $table->foreignId('description_id');
             $table->foreignId('inventory_id');
             $table->text('note')->nullable();
-            $table->enum('status', ['Pending', 'Ordered', 'Incomplete', 'Complete'])->default('Pending');
+            $table->enum('purchase_reception_status', ['Ordered', 'Incomplete', 'Complete'])->default('Ordered');
 
             $table->timestamps();
             $table->softDeletes();

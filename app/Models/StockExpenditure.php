@@ -6,22 +6,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ParStock extends Model
+class StockExpenditure extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $guarded = [];
 
-    static public function generateParStockNumber(string $year)
+    static public function generateStockExpenditureNumber(string $year)
     {
-        $firstPrefix = 'PAR';
+        $firstPrefix = 'PS';
         $secondPrefix = $year;
         $prefix = $firstPrefix . '-' . $secondPrefix;
 
-        $latestParStockTransaction = ParStock::withTrashed()->whereYear('date', $year)->orderBy('id', 'DESC')->first();
+        $latestStockExpenditureTransaction = StockExpenditure::withTrashed()->whereYear('date', $year)->orderBy('id', 'DESC')->first();
 
-        if ($latestParStockTransaction) {
-            $lastNumber = explode('-', $latestParStockTransaction->par_stock_number)[2];
+        if ($latestStockExpenditureTransaction) {
+            $lastNumber = explode('-', $latestStockExpenditureTransaction->stock_expenditure_number)[2];
             $newNumber = $lastNumber + 1;
         } else {
             $newNumber = 1;
@@ -39,6 +39,6 @@ class ParStock extends Model
 
     public function details()
     {
-        return $this->hasMany(ParStockDetail::class);
+        return $this->hasMany(StockExpenditureDetail::class);
     }
 }

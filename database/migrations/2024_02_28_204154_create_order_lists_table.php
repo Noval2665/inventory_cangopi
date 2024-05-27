@@ -23,7 +23,6 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->foreignId('inventory_id');
             $table->boolean('is_active')->default(true);
-            $table->enum('status', ['Pending', 'Waiting', 'Approved', 'Rejected'])->default('Pending');
             $table->foreignId('user_id');
 
             $table->timestamps();

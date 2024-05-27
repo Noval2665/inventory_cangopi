@@ -11,11 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('par_stocks', function (Blueprint $table) {
+        Schema::create('stock_expenditures', function (Blueprint $table) {
             $table->id();
-            $table->string('par_stock_number', 20)->unique();
+            $table->string('stock_expenditure_number', 20)->unique();
             $table->date('date');
-            $table->foreignId('inventory_id');
+            $table->double('total');
+            $table->enum('discount_type', ['amount', 'percentage'])->default('amount');
+            $table->double('discount_amount')->default(0);
+            $table->double('discount_percentage')->default(0);
+            $table->double('ppn_percentage')->default(0);
+            $table->double('grandtotal');
+            $table->foreignId('inventory_id')->nullable();
             $table->text('description')->nullable();
             $table->foreignId('user_id');
 
@@ -32,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('par_stocks');
+        Schema::dropIfExists('stock_expenditures');
     }
 };
