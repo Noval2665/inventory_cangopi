@@ -183,7 +183,7 @@ class StockExpenditureController extends Controller
                     $productHistory = ProductHistory::create([
                         'product_id' => $item['product_id'],
                         'date' => $request->date,
-                        'quantity' => $item['quantity'] * -1,
+                        'quantity' => $quantityToSell * -1,
                         'selling_price' => $item['selling_price'],
                         'total' => $item['total'],
                         'discount_type' => $item['discount_type'],

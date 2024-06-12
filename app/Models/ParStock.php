@@ -41,4 +41,9 @@ class ParStock extends Model
     {
         return $this->hasMany(ParStockDetail::class);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

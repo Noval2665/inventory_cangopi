@@ -44,6 +44,6 @@ class Catering extends Model
 
     public function orderList()
     {
-        return $this->belongsTo(OrderList::class);
+        return $this->hasOne(OrderList::class, 'id', 'order_list_id');
     }
 }

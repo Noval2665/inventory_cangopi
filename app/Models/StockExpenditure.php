@@ -41,4 +41,9 @@ class StockExpenditure extends Model
     {
         return $this->hasMany(StockExpenditureDetail::class);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

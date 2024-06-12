@@ -29,7 +29,9 @@ class MarketListController extends Controller
         $marketLists = MarketList::with([
             'orderList',
             'orderList.inventory',
-            'orderList.details',
+            'orderList.details' => function ($query) {
+                $query->where('description_id', '!=', 6);
+            },
             'orderList.details.product',
             'orderList.details.product.subCategory.category',
             'orderList.details.product.unit',

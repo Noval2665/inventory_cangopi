@@ -43,6 +43,11 @@ class OrderList extends Model
         return $this->hasOne(MarketList::class);
     }
 
+    public function catering()
+    {
+        return $this->belongsTo(Catering::class, 'id', 'order_list_id');
+    }
+
     public function productHistories()
     {
         return $this->hasMany(ProductHistory::class, 'reference_number', 'order_list_number');

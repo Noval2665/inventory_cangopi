@@ -13,9 +13,11 @@ use App\Http\Controllers\UnitController;
 use App\Http\Controllers\StorageController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\MarketListController;
+use App\Http\Controllers\OpnameController;
 use App\Http\Controllers\OrderListController;
 use App\Http\Controllers\ParStockController;
 use App\Http\Controllers\PurchaseReceptionController;
+use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
@@ -77,6 +79,10 @@ Route::group(['middleware' => 'authenticated'], function () {
     Route::apiResource('caterings', CateringController::class);
     Route::apiResource('stock-expenditures', StockExpenditureController::class);
 
+    Route::apiResource('purchase-returns', PurchaseReturnController::class);
+
+    Route::apiResource('opnames', OpnameController::class);
+
     Route::apiResource('par-stocks', ParStockController::class);
 
     // 👉 Report
@@ -84,6 +90,15 @@ Route::group(['middleware' => 'authenticated'], function () {
         Route::get('order-lists', [ReportController::class, 'orderLists']);
         Route::get('market-lists', [ReportController::class, 'marketLists']);
         Route::get('purchase-receptions', [ReportController::class, 'purchaseReceptions']);
+
+        Route::get('stock-expenditures', [ReportController::class, 'stockExpenditures']);
+
+        Route::group(['prefix' => 'return'], function () {
+            Route::get('purchases', [ReportController::class, 'purchaseReturns']);
+        });
+
+        Route::get('par-stocks', [ReportController::class, 'parStocks']);
+        Route::get('opnames', [ReportController::class, 'opnames']);
     });
 
     // 👉 Access control

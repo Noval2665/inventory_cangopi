@@ -27,7 +27,9 @@ class OrderListController extends Controller
 
         $orderLists = OrderList::with([
             'inventory',
-            'details',
+            'details' => function ($query) {
+                $query->where('description_id', '!=', 6);
+            },
             'details.product.subCategory.category',
             'details.product.unit',
             'details.product.metric',

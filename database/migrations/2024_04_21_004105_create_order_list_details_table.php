@@ -17,8 +17,11 @@ return new class extends Migration
             $table->foreignId('product_id');
             $table->double('quantity');
             $table->double('received_quantity')->default(0);
+            $table->double('return_quantity')->default(0);
+            $table->boolean('return_status')->default(true);
             $table->double('price')->comment('Harga beli / jual');
             $table->double('total');
+            $table->double('return_amount')->default(0);
             $table->enum('discount_type', ['amount', 'percentage'])->default('amount');
             $table->double('discount_amount')->default(0);
             $table->string('discount_percentage')->default(0);
