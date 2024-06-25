@@ -137,6 +137,7 @@ class PurchaseReceptionController extends Controller
                                 'inventory_id' => $request->inventory_id,
                                 'total_stock' => $item['quantity'],
                                 'total_stock_out' => 0,
+                                'user_id' => auth()->user()->id,
                             ]);
 
                             if (!$productInfo) {

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('stock_expenditure_id');
             $table->foreignId('product_id');
             $table->double('quantity');
-            $table->double('selling_price');
+            $table->double('purchase_price');
             $table->double('total');
             $table->enum('discount_type', ['amount', 'percentage'])->default('amount');
             $table->double('discount_amount')->default(0);

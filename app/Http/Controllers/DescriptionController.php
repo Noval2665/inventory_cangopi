@@ -24,7 +24,7 @@ class DescriptionController extends Controller
         $search = $request->search;
 
         $descriptions = Description::when($search, function ($query, $search) {
-            return $query->where('description_type', 'LIKE', '%' . $search . '%');
+            return $query->where('description_name', 'LIKE', '%' . $search . '%');
         })
             ->paginate($per_page, ['*'], 'page', $page);
 

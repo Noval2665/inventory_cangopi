@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductInfo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -83,6 +84,8 @@ class ProductController extends Controller
             'automatic_use' => Rule::requiredIf($request->product_type == 'raw'),
             'purchase_price' => Rule::requiredIf($request->product_type == 'raw'),
             'selling_price' => Rule::requiredIf($request->product_type == 'finished'),
+            'inventory_id' => 'nullable|numeric|exists:inventories,id',
+            'initial_stock' => 'nullable|numeric',
             'unit_id' => Rule::requiredIf($request->product_type == 'raw'),
             'measurement' => Rule::requiredIf($request->product_type == 'raw'),
             'metric_id' => Rule::requiredIf($request->product_type == 'raw'),
@@ -106,7 +109,7 @@ class ProductController extends Controller
             if (!$request->product_code) {
                 do {
                     $year = date('Y', strtotime(Carbon::now()));
-                    $productCode = Product::generateProductCode($year);
+                    $productCode = Product::generateProductCode($year, $request->product_type);
                 } while (Product::where('product_code', $productCode)->exists());
             } else {
                 $productCode = $request->product_code;
@@ -118,7 +121,7 @@ class ProductController extends Controller
                 'brand_id' => $request->brand_id,
                 'sub_category_id' => $request->sub_category_id ?? NULL,
                 'min_stock' => $request->min_stock,
-                'stock' => 0,
+                'stock' => $request->initial_stock ?? 0,
                 'automatic_use' => $request->automatic_use ?? 0,
                 'purchase_price' => $request->product_type == 'raw' ? $request->purchase_price : 0,
                 'selling_price' => $request->product_type == 'finished' ? $request->purchase_price : 0,
@@ -136,6 +139,20 @@ class ProductController extends Controller
 
             if (!$createProduct) {
                 throw new HttpException(400, 'Gagal membuat data produk');
+            }
+
+            if ($request->inventory_id && $request->initial_stock > 0) {
+                $createProductInfo = ProductInfo::create([
+                    'product_id' => $createProduct->id,
+                    'total_stock' => $request->initial_stock,
+                    'total_stock_out' => 0,
+                    'inventory_id' => $request->inventory_id,
+                    'user_id' => auth()->user()->id,
+                ]);
+
+                if (!$createProductInfo) {
+                    throw new HttpException(400, 'Gagal membuat data produk info');
+                }
             }
 
             DB::commit();

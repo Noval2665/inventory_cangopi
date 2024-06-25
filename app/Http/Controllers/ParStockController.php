@@ -180,7 +180,7 @@ class ParStockController extends Controller
                             'reference_number' => $parStockNumber,
                             'category' => 'par-stock',
                             'type' => $difference > 0 ? 'IN' : 'OUT',
-                            'product_history_referepnce' => $history->id,
+                            'product_history_reference' => $history->id,
                             'inventory_id' => $request->inventory_id,
                         ]);
 

@@ -114,7 +114,7 @@ class StockExpenditureController extends Controller
                 $createStockExpenditureItem = $createStockExpenditure->details()->create([
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    'selling_price' => $item['selling_price'],
+                    'purchase_price' => $item['purchase_price'],
                     'total' => $item['total'],
                     'discount_type' => $item['discount_type'],
                     'discount_amount' => $item['discount_amount'] ?? 0,
@@ -184,7 +184,7 @@ class StockExpenditureController extends Controller
                         'product_id' => $item['product_id'],
                         'date' => $request->date,
                         'quantity' => $quantityToSell * -1,
-                        'selling_price' => $item['selling_price'],
+                        'purchase_price' => $item['purchase_price'],
                         'total' => $item['total'],
                         'discount_type' => $item['discount_type'],
                         'discount_amount' => $item['discount_amount'] ?? 0,

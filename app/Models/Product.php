@@ -27,9 +27,9 @@ class Product extends Model
         'user_id' => 'integer',
     ];
 
-    static public function generateProductCode(string $year)
+    static public function generateProductCode(string $year, string $productType)
     {
-        $firstPrefix = 'PRD';
+        $firstPrefix = $productType == 'raw' ? 'P-M' : ($productType == 'semi-finished' ? 'P-PAR' : 'P-J');
         $secondPrefix = $year;
         $prefix = $firstPrefix . '-' . $secondPrefix;
 

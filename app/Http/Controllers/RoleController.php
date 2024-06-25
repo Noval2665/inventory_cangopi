@@ -102,6 +102,7 @@ class RoleController extends Controller
             'name' => 'required',
             'permissions' => 'present|array',
             'permissions.*.parent' => 'required|string',
+            'permissions.*.path' => 'required|string',
             'permissions.*.action' => 'required|string',
             'permissions.*.subject' => 'required|string',
         ]);

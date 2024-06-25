@@ -140,7 +140,7 @@ class OrderListController extends Controller
 
             if ($request->type === 'process') {
                 $checkHasMarketList = array_filter($request->order_list_items, function ($orderListItem) {
-                    return $orderListItem['description_id'] == 1;
+                    return $orderListItem['description_id'] != 6;
                 });
 
                 if ($checkHasMarketList) {

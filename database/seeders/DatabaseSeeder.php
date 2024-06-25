@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Superadmin',
             'permissions' => [
                 [
+                    "parent" => "all",
                     "action" => "manage",
                     "subject" => "all"
                 ]
@@ -50,6 +51,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin',
             'permissions' => [
                 [
+                    "parent" => "all",
+                    "path" => "all",
                     "action" => "manage",
                     "subject" => "all"
                 ]
@@ -60,6 +63,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Finance',
             'permissions' => [
                 [
+                    "parent" => "all",
+                    "path" => "all",
                     "action" => "manage",
                     "subject" => "all"
                 ]
@@ -70,6 +75,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'User',
             'permissions' => [
                 [
+                    "parent" => "all",
                     "action" => "read",
                     "subject" => "all"
                 ]
