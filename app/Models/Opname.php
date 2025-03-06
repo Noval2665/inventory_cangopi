@@ -20,7 +20,7 @@ class Opname extends Model
 
         $invoiceNumbers = [];
         foreach ($transactions as $transaction) {
-            $number = explode('-', $transaction->opname_number)[4];
+            $number = explode('-', $transaction->opname_number)[2];
             $invoiceNumbers[] = (int)$number;
         }
 

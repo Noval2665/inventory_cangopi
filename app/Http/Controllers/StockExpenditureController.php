@@ -62,7 +62,7 @@ class StockExpenditureController extends Controller
             'stock_expenditure_items' => ['required', 'array'],
             'stock_expenditure_items.*.product_id' => ['required', 'numeric', 'exists:products,id'],
             'stock_expenditure_items.*.quantity' => ['required', 'numeric'],
-            'stock_expenditure_items.*.selling_price' => ['required', 'numeric'],
+            'stock_expenditure_items.*.purchase_price' => ['required', 'numeric'],
             'stock_expenditure_items.*.total' => ['required', 'numeric'],
             'stock_expenditure_items.*.discount_type' => ['required', 'string'],
             'stock_expenditure_items.*.discount_amount' => ['nullable', 'numeric'],
@@ -253,7 +253,7 @@ class StockExpenditureController extends Controller
             'stock_expenditure_items' => ['required', 'array'],
             'stock_expenditure_items.*.product_id' => ['required', 'numeric', 'exists:products,id'],
             'stock_expenditure_items.*.quantity' => ['required', 'numeric'],
-            'stock_expenditure_items.*.selling_price' => ['required', 'numeric'],
+            'stock_expenditure_items.*.purchase_price' => ['required', 'numeric'],
             'stock_expenditure_items.*.total' => ['required', 'numeric'],
             'stock_expenditure_items.*.discount_type' => ['required', 'string'],
             'stock_expenditure_items.*.discount_amount' => ['nullable', 'numeric'],
@@ -384,7 +384,7 @@ class StockExpenditureController extends Controller
 
                 $updateProduct = $product->update([
                     'stock' => $product->stock - ($tempStockExpenditureDetail ? $tempStockExpenditureDetail->quantity : 0) + $item['quantity'],
-                    'selling_price' => $item['selling_price'],
+                    'purchase_price' => $item['purchase_price'],
                 ]);
 
                 if (!$updateProduct) {
@@ -413,7 +413,7 @@ class StockExpenditureController extends Controller
                 $createStockExpenditureDetail = $stockExpenditure->details()->create([
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    'selling_price' => $item['selling_price'],
+                    'purchase_price' => $item['purchase_price'],
                     'total' => $item['total'],
                     'discount_type' => $item['discount_type'],
                     'discount_amount' => $item['discount_amount'] ?? 0,
@@ -456,7 +456,7 @@ class StockExpenditureController extends Controller
                         'product_id' => $item['product_id'],
                         'date' => $request->date,
                         'quantity' => $item['quantity'] * -1,
-                        'selling_price' => $item['selling_price'],
+                        'purchase_price' => $item['purchase_price'],
                         'total' => $item['total'],
                         'discount_type' => $item['discount_type'],
                         'discount_amount' => $item['discount_amount'] ?? 0,

@@ -38,7 +38,7 @@ class ReportController extends Controller
             'user'
         ])
             ->when($category == 'caterings', function ($query) {
-                $query->with('catering');
+                $query->with('catering')->whereHas('catering');
             })
             ->when($search, function ($query, $search) {
                 return $query->where('order_list_number', 'LIKE', '%' . $search . '%');

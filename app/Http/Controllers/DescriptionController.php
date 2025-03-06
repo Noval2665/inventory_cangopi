@@ -49,7 +49,7 @@ class DescriptionController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'description_type' => 'required|string',
+            'description_name' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -62,7 +62,7 @@ class DescriptionController extends Controller
 
 
         $createDescription = Description::create([
-            'description_type' => ucwords($request->description_type),
+            'description_name' => ucwords($request->description_name),
             'user_id' => auth()->user()->id,
         ]);
 
@@ -101,7 +101,7 @@ class DescriptionController extends Controller
     public function update(Request $request, Description $description)
     {
         $validator = Validator::make($request->all(), [
-            'description_type' => 'required|string',
+            'description_name' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -113,7 +113,7 @@ class DescriptionController extends Controller
         }
 
         $updateDescription = $description->update([
-            'description_type' => ucwords($request->description_type),
+            'description_name' => ucwords($request->description_name),
             'user_id' => auth()->user()->id,
         ]);
 

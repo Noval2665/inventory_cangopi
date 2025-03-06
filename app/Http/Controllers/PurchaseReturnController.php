@@ -312,11 +312,11 @@ class PurchaseReturnController extends Controller
                 }
             }
 
-            $deleteProductHistory = ProductHistory::where('reference_number', $purchaseReturn->purchase_return_number)->delete();
+            // $deleteProductHistory = ProductHistory::where('reference_number', $purchaseReturn->purchase_return_number)->delete();
 
-            if (!$deleteProductHistory) {
-                throw new Exception('Gagal menghapus histori produk');
-            }
+            // if (!$deleteProductHistory) {
+            //     throw new Exception('Gagal menghapus histori produk');
+            // }
 
             if (!$purchaseReturn->details()->delete()) {
                 throw new Exception('Gagal menghapus detail retur pembelian');
@@ -612,7 +612,7 @@ class PurchaseReturnController extends Controller
                     'product_id' => $item['product_id'],
                     'date' => $data['date'],
                     'quantity' => $data['quantity'],
-                    'purchase_price' => $data['price'],
+                    'purchase_price' => $data['purchase_price'],
                     'selling_price' => $data['selling_price'],
                     'discount_type' => $data['discount_type'],
                     'discount_amount' => $data['discount_amount'],

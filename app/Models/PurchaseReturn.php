@@ -41,7 +41,7 @@ class PurchaseReturn extends Model
 
     public function orderList()
     {
-        return $this->belongsTo(orderList::class);
+        return $this->belongsTo(OrderList::class);
     }
 
     public function details()

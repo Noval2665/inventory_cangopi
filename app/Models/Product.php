@@ -36,7 +36,7 @@ class Product extends Model
         $latestProductCode = Product::whereYear('created_at', $year)->orderBy('id', 'DESC')->first();
 
         if ($latestProductCode) {
-            $lastCode = explode('-', $latestProductCode->product_code)[2];
+            $lastCode = explode('-', $latestProductCode->product_code)[3];
             $newCode = $lastCode + 1;
         } else {
             $newCode = 1;

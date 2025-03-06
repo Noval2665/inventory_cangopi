@@ -134,7 +134,7 @@ class PurchaseReceptionController extends Controller
                         if (!$productInfo) {
                             $productInfo = ProductInfo::create([
                                 'product_id' => $item['product_id'],
-                                'inventory_id' => $request->inventory_id,
+                                'inventory_id' => $orderList->inventory_id,
                                 'total_stock' => $item['quantity'],
                                 'total_stock_out' => 0,
                                 'user_id' => auth()->user()->id,
@@ -240,39 +240,39 @@ class PurchaseReceptionController extends Controller
         try {
             $orderList = OrderList::where('id', $request->order_list_id)->first();
 
-            $total = array_reduce($request->order_list_items, function ($carry, $item) {
-                return $carry + $item['total'];
-            });
+            // $total = array_reduce($request->order_list_items, function ($carry, $item) {
+            //     return $carry + $item['total'];
+            // });
 
-            $newDiscountAmount = 0;
-            $newDiscountPercentage = 0;
-            $newPPNAmount = 0;
-            $newGrandtotal = 0;
+            // $newDiscountAmount = 0;
+            // $newDiscountPercentage = 0;
+            // $newPPNAmount = 0;
+            // $newGrandtotal = 0;
 
-            if ($orderList->discount_type == 'amount') {
-                $newDiscountPercentage = $orderList->discount_amount / $total * 100;
+            // if ($orderList->discount_type == 'amount') {
+            //     $newDiscountPercentage = $orderList->discount_amount / $total * 100;
 
-                $newDiscountPercentage = is_int($newDiscountPercentage)
-                    ? intval($newDiscountPercentage)
-                    : round($newDiscountPercentage, 2);
+            //     $newDiscountPercentage = is_int($newDiscountPercentage)
+            //         ? intval($newDiscountPercentage)
+            //         : round($newDiscountPercentage, 2);
 
-                $newGrandtotal = $total - $orderList->discount_amount + $newPPNAmount;
-            } else {
-                $newDiscountAmount = $total * $orderList->discount_percentage / 100;
+            //     $newGrandtotal = $total - $orderList->discount_amount + $newPPNAmount;
+            // } else {
+            //     $newDiscountAmount = $total * $orderList->discount_percentage / 100;
 
-                $newGrandtotal = $total - $newDiscountAmount + $newPPNAmount;
-            }
+            //     $newGrandtotal = $total - $newDiscountAmount + $newPPNAmount;
+            // }
 
-            $updateOrderList = $orderList->update([
-                'total' => $total,
-                'discount_amount' => $newDiscountAmount == 0 ? $orderList->discount_amount : $newDiscountAmount,
-                'discount_percentage' => $newDiscountPercentage == 0 ? $orderList->discount_percentage : $newDiscountPercentage,
-                'grandtotal' => $newGrandtotal,
-            ]);
+            // $updateOrderList = $orderList->update([
+            //     'total' => $total,
+            //     'discount_amount' => $newDiscountAmount == 0 ? $orderList->discount_amount : $newDiscountAmount,
+            //     'discount_percentage' => $newDiscountPercentage == 0 ? $orderList->discount_percentage : $newDiscountPercentage,
+            //     'grandtotal' => $newGrandtotal,
+            // ]);
 
-            if (!$updateOrderList) {
-                throw new HttpException(400, 'Gagal mengubah data order list');
-            }
+            // if (!$updateOrderList) {
+            //     throw new HttpException(400, 'Gagal mengubah data order list');
+            // }
 
             foreach ($request->order_list_items as $item) {
                 if ($item['received_quantity'] != $item['last_received_quantity']) {
@@ -299,14 +299,15 @@ class PurchaseReceptionController extends Controller
                             throw new HttpException(400, 'Gagal mengubah data stok produk' . $product->name);
                         }
 
-                        $productInfo = ProductInfo::where('product_id', $item['product_id'])->where('inventory_id', $orderListDetail->inventory_id)->first();
+                        $productInfo = ProductInfo::where('product_id', $item['product_id'])->where('inventory_id', $orderList->inventory_id)->first();
 
                         if (!$productInfo) {
                             $productInfo = ProductInfo::create([
                                 'product_id' => $item['product_id'],
-                                'inventory_id' => $request->inventory_id,
+                                'inventory_id' => $orderList->inventory_id,
                                 'total_stock' => $item['quantity'],
                                 'total_stock_out' => 0,
+                                'user_id' => auth()->user()->id,
                             ]);
 
                             if (!$productInfo) {
@@ -358,9 +359,10 @@ class PurchaseReceptionController extends Controller
                         if (!$productInfo) {
                             $productInfo = ProductInfo::create([
                                 'product_id' => $item['product_id'],
-                                'inventory_id' => $request->inventory_id,
+                                'inventory_id' => $orderList->inventory_id,
                                 'total_stock' => $item['quantity'],
                                 'total_stock_out' => 0,
+                                'user_id' => auth()->user()->id,
                             ]);
 
                             if (!$productInfo) {

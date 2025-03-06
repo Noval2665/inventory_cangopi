@@ -25,7 +25,7 @@ class Recipe extends Model
 
     public function finishedProduct()
     {
-        return $this->belongsTo(product::class, 'finished_product_id', 'id');
+        return $this->belongsTo(Product::class, 'finished_product_id', 'id');
     }
 
     public function details()

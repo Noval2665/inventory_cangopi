@@ -124,7 +124,7 @@ class ProductController extends Controller
                 'stock' => $request->initial_stock ?? 0,
                 'automatic_use' => $request->automatic_use ?? 0,
                 'purchase_price' => $request->product_type == 'raw' ? $request->purchase_price : 0,
-                'selling_price' => $request->product_type == 'finished' ? $request->purchase_price : 0,
+                'selling_price' => $request->product_type == 'finished' ? $request->selling_price : 0,
                 'unit_id' => $request->unit_id,
                 'measurement' => $request->measurement ?? 0,
                 'metric_id' => $request->metric_id,
@@ -194,19 +194,21 @@ class ProductController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'product_name' => 'required|string',
-            'brand_id' => 'nullable',
-            'sub_category_id' => 'required|numeric|exists:sub_categories,id',
-            'min_stock' => 'required|numeric',
-            'automatic_use' => 'required|numeric',
+            'brand_id' => Rule::requiredIf($request->product_type == 'raw'),
+            'sub_category_id' => Rule::requiredIf($request->product_type == 'raw'),
+            'min_stock' => Rule::requiredIf($request->product_type == 'raw'),
+            'automatic_use' => Rule::requiredIf($request->product_type == 'raw'),
             'purchase_price' => Rule::requiredIf($request->product_type == 'raw'),
             'selling_price' => Rule::requiredIf($request->product_type == 'finished'),
-            'unit_id' => 'required|numeric|exists:units,id',
-            'measurement' => 'required|numeric',
-            'metric_id' => 'required|numeric|exists:metrics,id',
+            'inventory_id' => 'nullable|numeric|exists:inventories,id',
+            'initial_stock' => 'nullable|numeric',
+            'unit_id' => Rule::requiredIf($request->product_type == 'raw'),
+            'measurement' => Rule::requiredIf($request->product_type == 'raw'),
+            'metric_id' => Rule::requiredIf($request->product_type == 'raw'),
             'image' => 'nullable',
-            'storage_id' => 'required|numeric|exists:storages,id',
-            'supplier_id' => 'required|numeric|exists:suppliers,id',
-            'product_type' => 'required|string|in:raw,finished',
+            'storage_id' => Rule::requiredIf($request->product_type == 'raw'),
+            'supplier_id' => Rule::requiredIf($request->product_type == 'raw'),
+            'product_type' => 'required|string|in:raw,semi-finished,finished',
         ]);
 
         if ($validator->fails()) {
@@ -223,16 +225,16 @@ class ProductController extends Controller
 
         $updateProduct = $product->update([
             'product_name' => ucwords($request->product_name),
-            'brand_id' => $this->checker($request->brand_id),
+            'brand_id' => $request->brand_id,
             'sub_category_id' => $request->sub_category_id,
             'min_stock' => $request->min_stock,
             'automatic_use' => $request->automatic_use,
             'purchase_price' => $request->product_type == 'raw' ? $request->purchase_price : 0,
-            'selling_price' => $request->product_type == 'finished' ? $request->purchase_price : 0,
+            'selling_price' => $request->product_type == 'finished' ? $request->selling_price : 0,
             'unit_id' => $request->unit_id,
             'measurement' => $request->measurement,
             'metric_id' => $request->metric_id,
-            'image' => $request->file('image') && $request->file('image')->isValid()
+            'image' => $product->image && $request->file('image') && $request->file('image')->isValid()
                 ? $request->file('image')->store('images', 'public')
                 : NULL,
             'storage_id' => $request->storage_id,
