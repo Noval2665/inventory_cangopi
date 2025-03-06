@@ -10,4 +10,16 @@ class Supplier extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded = [];
+
+    protected $dates = ['deactivated_at'];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'user_id' => 'integer',
+    ];
+
+    public function products()
+    {
+        return $this->hasMany(Product::class, "supplier_id", "id");
+    }
 }

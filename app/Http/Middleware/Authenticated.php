@@ -19,7 +19,7 @@ class Authenticated
         // Check if the request has a valid jwt token
         if (!Auth::check()) {
             return response()->json([
-                'message' => 'You are not authorized to access this resource'
+                'message' => 'Token yang kamu gunakan tidak valid. Silahkan login kembali.'
             ], 401);
         }
 

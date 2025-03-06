@@ -11,4 +11,83 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $guarded = [];
+
+    protected $casts = [
+        'product_name' => 'string',
+        'purchase_price' => 'double',
+        'stock' => 'double',
+        'measurement' => 'double',
+        'sub_category_id' => 'integer',
+        'storage_id' => 'integer',
+        'brand_id' => 'integer',
+        'unit_id' => 'integer',
+        'metric_id' => 'integer',
+        'supplier_id' => 'integer',
+        'is_active' => 'boolean',
+        'user_id' => 'integer',
+    ];
+
+    static public function generateProductCode(string $year, string $productType)
+    {
+        $firstPrefix = $productType == 'raw' ? 'P-M' : ($productType == 'semi-finished' ? 'P-PAR' : 'P-J');
+        $secondPrefix = $year;
+        $prefix = $firstPrefix . '-' . $secondPrefix;
+
+        $latestProductCode = Product::whereYear('created_at', $year)->orderBy('id', 'DESC')->first();
+
+        if ($latestProductCode) {
+            $lastCode = explode('-', $latestProductCode->product_code)[3];
+            $newCode = $lastCode + 1;
+        } else {
+            $newCode = 1;
+        }
+
+        $newCode = str_pad($newCode, 4, '0', STR_PAD_LEFT);
+
+        return $prefix . '-' . $newCode;
+    }
+
+    public function subCategory()
+    {
+        return $this->belongsTo(SubCategory::class, "sub_category_id", "id");
+    }
+    public function storage()
+    {
+        return $this->belongsTo(Storage::class, "storage_id", "id");
+    }
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class, 'brand_id', 'id');
+    }
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class, 'unit_id', "id");
+    }
+    public function metric()
+    {
+        return $this->belongsTo(Metric::class, "metric_id", "id");
+    }
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, "supplier_id", "id");
+    }
+    public function orderLists()
+    {
+        return $this->hasMany(OrderList::class, "product_id", "id");
+    }
+
+    public function inventoryProductInfo()
+    {
+        return $this->hasOne(ProductInfo::class, 'product_id');
+    }
+
+    public function productHistories()
+    {
+        return $this->hasMany(ProductHistory::class, 'product_id');
+    }
+
+    public function recipeDetails()
+    {
+        return $this->hasMany(RecipeDetail::class, 'product_id');
+    }
 }

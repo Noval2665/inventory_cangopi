@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('descriptions', function (Blueprint $table) {
             $table->id();
-            $table->string('description_type');
+            $table->string('description_name');
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
 

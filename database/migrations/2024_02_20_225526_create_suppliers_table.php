@@ -13,10 +13,9 @@ return new class extends Migration
     {
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('supplier_name');
+            $table->string('phone_number')->nullable();
             $table->string('address')->nullable();
-            $table->string('phone_number');
-            $table->text('exception')->nullable();
             $table->boolean('is_active')->default(true);
             $table->foreignId('user_id');
 
